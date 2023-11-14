@@ -1,0 +1,109 @@
+{
+  "name": "pulumi-vscode-tools",
+  "displayName": "Pulumi Tools",
+  "description": "Pulumi Visual Studio Code Tools",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onDebug"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pulumi-vscode-tools.helloWorld",
+        "title": "Hello World"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "pulumi",
+        "languages": [],
+        "label": "Pulumi",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "command"
+            ],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Deployment command (up, preview, destroy).",
+                "default": "preview"
+              },
+              "stack": {
+                "type": "string",
+                "description": "The name of the stack to operate on. Defaults to the current stack."
+              },
+              "workspaceFolder": {
+                "type": "string",
+                "description": "Run pulumi as if it had been started in another directory.",
+                "default": "${workspaceFolder}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "pulumi",
+            "request": "launch",
+            "name": "pulumi: preview",
+            "command": "preview",
+            "workspaceFolder": "${workspaceFolder}",
+            "stopOnEntry": true
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "pulumi: preview",
+            "description": "A new configuration for previewing a Pulumi deployment.",
+            "body": {
+              "type": "pulumi",
+              "request": "launch",
+              "name": "pulumi: preview",
+              "command": "preview",
+              "workspaceFolder": "${workspaceFolder}",
+              "stopOnEntry": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.3",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.84.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "@vscode/test-electron": "^2.3.6",
+    "@vscode/debugadapter": "^1.64.0",
+    "@vscode/debugadapter-testsupport": "^1.64.0",
+    "await-notify": "^1.0.1",
+    "eslint": "^8.52.0",
+    "glob": "^10.3.10",
+    "mocha": "^10.2.0",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+
+  }
+}
