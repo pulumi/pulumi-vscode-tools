@@ -28,7 +28,8 @@ export function activatePulumiDebug(context: vscode.ExtensionContext) {
 						"request": "launch",
 						"name": "pulumi: preview",
 						"command": "preview",
-						"workspaceFolder": "${workspaceFolder}",
+						"workDir": "${workspaceFolder}",
+						"stackName": "dev",
 						"stopOnEntry": true
 					}
 				];
@@ -57,7 +58,8 @@ class PulumiConfigurationProvider implements vscode.DebugConfigurationProvider {
 		// 		config.name = 'pulumi: preview';
 		// 		config.request = 'launch';
 		// 		config.command = 'preview';
-		// 		config.workspaceFolder = '${workspaceFolder}';
+		//      config.stackName = 'dev';
+		// 		config.workDir = '${workspaceFolder}';
 		// 		config.stopOnEntry = true;
 		// 	}
 		// }
@@ -66,6 +68,10 @@ class PulumiConfigurationProvider implements vscode.DebugConfigurationProvider {
 		// 	return vscode.window.showInformationMessage("Cannot find a program to debug").then(_ => {
 		// 		return undefined;	// abort launch
 		// 	});
+		// }
+
+		// if (!config.stack) {
+		// 	config.stack = 'dev';
 		// }
 
 		return config;

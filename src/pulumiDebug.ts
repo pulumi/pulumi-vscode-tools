@@ -14,11 +14,13 @@ import * as vscode from 'vscode';
 import {
 	InitializedEvent,
 	LoggingDebugSession,
+	OutputEvent,
 	TerminatedEvent,
 	Thread
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { Subject } from 'await-notify';
+import { EngineEvent, LocalProgramArgs, LocalWorkspace } from "@pulumi/pulumi/automation";
 
 /**
  * This interface describes the pulumi-debug specific launch attributes
@@ -30,9 +32,11 @@ interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** Deployment command (up, preview, destroy). */
 	command: string;
 	/** The name of the stack to operate on. Defaults to the current stack */
-	stack?: string;
+	stackName: string;
 	/** Run pulumi as if it had been started in another directory. */
-	workspaceFolder?: string;
+	workDir: string;
+	/** environment variables */
+	env?: { [key: string]: string; };
 	/** Automatically stop target after launch. If not specified, target does not stop. */
 	stopOnEntry?: boolean;
 	/** run without debugging */
@@ -125,45 +129,67 @@ export class PulumiDebugSession extends LoggingDebugSession {
 		// wait 1 second until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
 
-		// start the program in the runtime
-		// await this._runtime.start(args.program, !!args.stopOnEntry, !args.noDebug);
+		// Create our stack using a local program
+		const programArgs: LocalProgramArgs = {
+			stackName: args.stackName,
+			workDir: args.workDir,
+		};
 
-		if (args.stack) {
-			// simulate a compile/build error in "launch" request:
-			// the error should not result in a modal dialog since 'showUser' is set to false.
-			// A missing 'showUser' should result in a modal dialog.
-			this.sendErrorResponse(response, {
-				id: 1001,
-				format: `compileerror: some fake error.`,
-				showUser: true
-			});
-		} else {
-			this.sendResponse(response);
-		}
+		// create (or select if one already exists) a stack that uses our local program
+		const stack = await LocalWorkspace.createOrSelectStack(args, {
+			envVars: {
+				...args.env,
+				"PULUMI_ENABLE_DEBUGGING": "true"
+			},
+		});
+		console.info("successfully initialized stack");
 
-		setTimeout(() => {
-			// simulate a dynamic attach to the language runtime; in practice, this will happen in response to engine events.
+		// start the program
+		stack.preview({ 
+			onOutput: this.onOutput.bind(this),
+			onEvent: this.onEngineEvent.bind(this), 
+			color: "never",
+		}).then((previewRes) => {
+			console.info("preview is done");
+		}).catch((err) => {
+			// TODO handle
+			console.error(err);
+		});
+		
+		this.sendResponse(response);		
+	}
+
+	private onOutput(out: string) {
+		const e: DebugProtocol.OutputEvent = new OutputEvent(out, 'stdout');
+		this.sendEvent(e);
+	}
+
+	private onEngineEvent(event: EngineEvent) {
+		console.info(`engine event: ${JSON.stringify(event)}`);
+		const e = event as EngineEventExtended;
+
+		if (e.startDebuggingEvent) {
+			const evt = e.startDebuggingEvent;
 			vscode.debug.startDebugging(undefined,
-				{
-					name: "Pulumi Program (Python)",
-					request: "launch",
-					type: "python",
-					program: "main.py"
-				},
+				evt.config,
 				{ 
 					noDebug: false, 
 					parentSession: this._session,
+					compact: false,
+					suppressSaveBeforeStart: true,
+					lifecycleManagedByParent: false,
 				}
-			);
-		});
+			).then((res) => {
+				console.log(`started debugging: ${JSON.stringify(evt.config)}`);
+			});
+			return;
+		}
+		
+		if (e.cancelEvent) {
+			this.sendEvent(new TerminatedEvent());
+			return;
+		}
 	}
-
-	// protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
-	// 	response.body = {
-	// 		breakpoints: []
-	// 	};
-	// 	this.sendResponse(response);
-	// }
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
 		// runtime supports no threads so just return a default thread.
@@ -171,6 +197,14 @@ export class PulumiDebugSession extends LoggingDebugSession {
 			threads: [
 				new Thread(PulumiDebugSession.threadID, "main thread")
 			]
+		};
+		this.sendResponse(response);
+	}
+
+	protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
+		// runtime supports no breakpoints so just return an empty array.
+		response.body = {
+			breakpoints: []
 		};
 		this.sendResponse(response);
 	}
@@ -197,4 +231,13 @@ export interface FileAccessor {
 	isWindows: boolean;
 	readFile(path: string): Promise<Uint8Array>;
 	writeFile(path: string, contents: Uint8Array): Promise<void>;
+}
+
+// EngineEventExtended is a temporary extension of EngineEvent to support the startDebuggingEvent.
+export interface EngineEventExtended extends EngineEvent{
+    startDebuggingEvent?: StartDebuggingEvent;
+}
+
+export interface StartDebuggingEvent {
+	config: vscode.DebugConfiguration;
 }

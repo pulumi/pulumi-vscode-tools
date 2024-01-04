@@ -32,18 +32,28 @@
             ],
             "properties": {
               "command": {
-                "type": "string",
-                "description": "Deployment command (up, preview, destroy).",
+                "enum": [
+                  "up",
+                  "preview",
+                  "destroy",
+                  "cancel"
+                ],
+                "description": "Deployment command (up, preview, destroy, cancel).",
                 "default": "preview"
               },
-              "stack": {
+              "stackName": {
                 "type": "string",
                 "description": "The name of the stack to operate on. Defaults to the current stack."
               },
-              "workspaceFolder": {
+              "workDir": {
                 "type": "string",
                 "description": "Run pulumi as if it had been started in another directory.",
-                "default": "${workspaceFolder}"
+                "default": "${workspaceRoot}"
+              },
+              "env": {
+                "type": "object",
+                "description": "Environment variables passed to the program.",
+                "default": {}
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -59,7 +69,8 @@
             "request": "launch",
             "name": "pulumi: preview",
             "command": "preview",
-            "workspaceFolder": "${workspaceFolder}",
+            "workDir": "${workspaceFolder}",
+            "stackName": "dev",
             "stopOnEntry": true
           }
         ],
@@ -72,7 +83,8 @@
               "request": "launch",
               "name": "pulumi: preview",
               "command": "preview",
-              "workspaceFolder": "${workspaceFolder}",
+              "workDir": "${workspaceFolder}",
+              "stackName": "dev",
               "stopOnEntry": true
             }
           }
@@ -94,9 +106,9 @@
     "@types/vscode": "^1.84.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
-    "@vscode/test-electron": "^2.3.6",
     "@vscode/debugadapter": "^1.64.0",
     "@vscode/debugadapter-testsupport": "^1.64.0",
+    "@vscode/test-electron": "^2.3.6",
     "await-notify": "^1.0.1",
     "eslint": "^8.52.0",
     "glob": "^10.3.10",
@@ -104,6 +116,6 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-
+    "@pulumi/pulumi": "^3.93.0"
   }
 }
