@@ -11,7 +11,7 @@
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"/Users/eronwright/Pulumi/vscode/sample"
+				"/Users/eronwright/Pulumi/vscode/sample-nodejs"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"

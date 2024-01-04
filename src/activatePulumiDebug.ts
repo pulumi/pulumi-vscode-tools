@@ -14,28 +14,9 @@ import { FileAccessor, PulumiDebugSession } from './pulumiDebug';
 export function activatePulumiDebug(context: vscode.ExtensionContext) {
 
 	// register configuration providers for 'pulumi' debug type
-	const provider = new PulumiConfigurationProvider();
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', provider));
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', {
-		provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
-			return vscode.workspace.findFiles('Pulumi.yaml').then((uris) => {
-				if (uris.length === 0) {
-					return [];
-				}
-				return [
-					{
-						"type": "pulumi",
-						"request": "launch",
-						"name": "pulumi: preview",
-						"command": "preview",
-						"workDir": "${workspaceFolder}",
-						"stackName": "dev",
-						"stopOnEntry": true
-					}
-				];
-			});
-		}
-	}, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', new PulumiConfigurationProvider()));
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', new PulumiDynamicConfigurationProvider(), 
+		vscode.DebugConfigurationProviderTriggerKind.Dynamic));
 
 	// register the debug adapter factory
 	const factory = new InlineDebugAdapterFactory();
@@ -43,40 +24,71 @@ export function activatePulumiDebug(context: vscode.ExtensionContext) {
 }
 
 class PulumiConfigurationProvider implements vscode.DebugConfigurationProvider {
-
 	/**
-	 * Massage a debug configuration just before a debug session is being launched,
+	 * Resolve a debug configuration just before a debug session is being launched,
 	 * e.g. add all missing attributes to the debug configuration.
 	 */
 	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
 
-		// // if launch.json is missing or empty
-		// if (!config.type && !config.request && !config.name) {
-		// 	const editor = vscode.window.activeTextEditor;
-		// 	if (editor && editor.document.languageId === 'markdown') {
-		// 		config.type = 'pulumi';
-		// 		config.name = 'pulumi: preview';
-		// 		config.request = 'launch';
-		// 		config.command = 'preview';
-		//      config.stackName = 'dev';
-		// 		config.workDir = '${workspaceFolder}';
-		// 		config.stopOnEntry = true;
-		// 	}
-		// }
+		if (!config.stackName || config.stackName === '') {
+			return vscode.window.showInformationMessage("Stack name must be configured").then(_ => {
+				return undefined;	// abort launch
+			});
+		}
+		if (!config.stack) {
+			config.stack = 'dev';
+		}
 
-		// if (!config.program) {
-		// 	return vscode.window.showInformationMessage("Cannot find a program to debug").then(_ => {
-		// 		return undefined;	// abort launch
-		// 	});
-		// }
-
-		// if (!config.stack) {
-		// 	config.stack = 'dev';
-		// }
+		if (!config.workDir) {
+			config.workDir = '${workspaceFolder}';
+		}
 
 		return config;
 	}
 }
+
+class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationProvider {
+	/**
+	 * provideDebugConfigurations is called to provide automatic launch configurations without requiring a launch.json.
+	 */
+	provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
+		return vscode.workspace.findFiles('Pulumi.yaml').then((uris) => {
+			if (uris.length === 0) {
+				return [];
+			}
+			return [
+				{
+					"type": "pulumi",
+					"request": "launch",
+					"name": "Pulumi: preview",
+					"command": "preview",
+					"workDir": "${workspaceFolder}",
+					"stackName": "dev",
+					"stopOnEntry": true
+				},
+				{
+					"type": "pulumi",
+					"request": "launch",
+					"name": "Pulumi: up",
+					"command": "up",
+					"workDir": "${workspaceFolder}",
+					"stackName": "dev",
+					"stopOnEntry": true
+				},
+				{
+					"type": "pulumi",
+					"request": "launch",
+					"name": "Pulumi: destroy",
+					"command": "destroy",
+					"workDir": "${workspaceFolder}",
+					"stackName": "dev",
+					"stopOnEntry": true
+				}
+			];
+		});
+	}
+}
+
 
 export const workspaceFileAccessor: FileAccessor = {
 	isWindows: typeof process !== 'undefined' && process.platform === 'win32',

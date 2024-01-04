@@ -10,7 +10,9 @@
     "Other"
   ],
   "activationEvents": [
-    "onDebug"
+    "onDebugDynamicConfigurations:pulumi",
+    "onDebugInitialConfigurations:pulumi",
+    "onDebugResolve:pulumi"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -63,27 +65,44 @@
             }
           }
         },
-        "initialConfigurations": [
-          {
-            "type": "pulumi",
-            "request": "launch",
-            "name": "pulumi: preview",
-            "command": "preview",
-            "workDir": "${workspaceFolder}",
-            "stackName": "dev",
-            "stopOnEntry": true
-          }
+        "initialConfigurations": [   
         ],
         "configurationSnippets": [
           {
-            "label": "pulumi: preview",
-            "description": "A new configuration for previewing a Pulumi deployment.",
+            "label": "Pulumi: preview",
+            "description": "Show a preview of updates to a stack's resources",
             "body": {
               "type": "pulumi",
               "request": "launch",
-              "name": "pulumi: preview",
+              "name": "Pulumi: preview",
               "command": "preview",
-              "workDir": "${workspaceFolder}",
+              "workDir": "^\"\\${workspaceFolder}\"",
+              "stackName": "dev",
+              "stopOnEntry": true
+            }
+          },
+          {
+            "label": "Pulumi: up",
+            "description": "Create or update the resources in a stack",
+            "body": {
+              "type": "pulumi",
+              "request": "launch",
+              "name": "Pulumi: up",
+              "command": "up",
+              "workDir": "^\"\\${workspaceFolder}\"",
+              "stackName": "dev",
+              "stopOnEntry": true
+            }
+          },
+          {
+            "label": "Pulumi: destroy",
+            "description": "Destroy all existing resources in the stack",
+            "body": {
+              "type": "pulumi",
+              "request": "launch",
+              "name": "Pulumi: destroy",
+              "command": "destroy",
+              "workDir": "^\"\\${workspaceFolder}\"",
               "stackName": "dev",
               "stopOnEntry": true
             }
