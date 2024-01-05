@@ -87,6 +87,24 @@ export class PulumiDebugSession extends LoggingDebugSession {
 		this.sendEvent(new InitializedEvent());
 	}
 
+	protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
+		// runtime supports no threads so just return a default thread.
+		response.body = {
+			threads: [
+				new Thread(PulumiDebugSession.threadID, "main thread")
+			]
+		};
+		this.sendResponse(response);
+	}
+
+	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
+		// runtime supports no breakpoints so just return an empty array.
+		response.body = {
+			breakpoints: []
+		};
+		this.sendResponse(response);
+	}
+
 	/**
 	 * Called at the end of the configuration sequence.
 	 * Indicates that all breakpoints etc. have been sent to the DA and that the 'launch' can start.
@@ -100,15 +118,25 @@ export class PulumiDebugSession extends LoggingDebugSession {
 
 	protected launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
 		console.info(`launchRequest args: ${JSON.stringify(args)}`);
-		this.sendResponse(response);
 
-		this.execute(args).catch((err) => {
+		// start the stack operation
+		this.executeAsync(args).catch((err) => {
 			console.error(`execute error: ${err}`);
 			this.sendEvent(new TerminatedEvent());
 		});
+
+		this.sendResponse(response);
 	}
 
-	private async execute(args: ILaunchRequestArguments) {
+    protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
+		// TODO abort any outstanding stack operation
+
+		super.disconnectRequest(response, args, request);
+	}
+
+	//---- helpers
+
+	private async executeAsync(args: ILaunchRequestArguments) {
 
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait();
@@ -191,26 +219,6 @@ export class PulumiDebugSession extends LoggingDebugSession {
 			return;
 		}
 	}
-
-	protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
-		// runtime supports no threads so just return a default thread.
-		response.body = {
-			threads: [
-				new Thread(PulumiDebugSession.threadID, "main thread")
-			]
-		};
-		this.sendResponse(response);
-	}
-
-	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
-		// runtime supports no breakpoints so just return an empty array.
-		response.body = {
-			breakpoints: []
-		};
-		this.sendResponse(response);
-	}
-
-	//---- helpers
 }
 
 export interface FileAccessor {
