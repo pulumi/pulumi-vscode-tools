@@ -146,12 +146,12 @@ export class PulumiDebugSession extends LoggingDebugSession {
 			stackName: args.stackName,
 			workDir: args.workDir,
 		};
-
+		
 		// create (or select if one already exists) a stack that uses our local program
 		const stack = await LocalWorkspace.createOrSelectStack(programArgs, {
 			envVars: {
 				...args.env,
-				"PULUMI_ENABLE_DEBUGGING": "true"
+				...!args.noDebug && {"PULUMI_ENABLE_DEBUGGING": "true"}
 			},
 		});
 
