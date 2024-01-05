@@ -198,19 +198,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 		const e = event as EngineEventExtended;
 
 		if (e.startDebuggingEvent) {
-			const evt = e.startDebuggingEvent;
-			vscode.debug.startDebugging(undefined,
-				evt.config,
-				{ 
-					noDebug: false, 
-					parentSession: this._session,
-					compact: false,
-					suppressSaveBeforeStart: true,
-					lifecycleManagedByParent: false,
-				}
-			).then((res) => {
-				console.log(`started debugging: ${JSON.stringify(evt.config)}`);
-			});
+			this.startDebugging(e.startDebuggingEvent);
 			return;
 		}
 		
@@ -218,6 +206,32 @@ export class PulumiDebugSession extends LoggingDebugSession {
 			this.sendEvent(new TerminatedEvent());
 			return;
 		}
+	}
+
+	private startDebugging(event: StartDebuggingEvent) {
+		vscode.debug.startDebugging(undefined,
+			event.config,
+			{ 
+				noDebug: false, 
+				parentSession: this._session,
+				compact: false,
+				suppressSaveBeforeStart: true,
+				lifecycleManagedByParent: false,
+			}
+		).then(
+			(success) => {
+				if (!success) {
+					console.error(`failed to start debugging: ${JSON.stringify(event.config)}`);
+					this.sendEvent(new TerminatedEvent());
+					return;
+				}
+				console.log(`started debugging: ${JSON.stringify(event.config)}`);
+			},
+			(err) => {
+				console.error(`failed to start debugging: ${JSON.stringify(event.config)}: ${err}`);
+				this.sendEvent(new TerminatedEvent());
+			}
+		);
 	}
 }
 
