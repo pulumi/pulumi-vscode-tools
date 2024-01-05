@@ -29,16 +29,14 @@ class PulumiConfigurationProvider implements vscode.DebugConfigurationProvider {
 	 * e.g. add all missing attributes to the debug configuration.
 	 */
 	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
-
-		if (!config.stackName || config.stackName === '') {
-			return vscode.window.showInformationMessage("Stack name must be configured").then(_ => {
-				return undefined;	// abort launch
-			});
-		}
+		// if (!config.stackName || config.stackName === '') {
+		// 	return vscode.window.showInformationMessage("Stack name must be configured").then(_ => {
+		// 		return undefined;	// abort launch
+		// 	});
+		// }
 		if (!config.stack) {
 			config.stack = 'dev';
 		}
-
 		if (!config.workDir) {
 			config.workDir = '${workspaceFolder}';
 		}
@@ -88,7 +86,6 @@ class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationPro
 		});
 	}
 }
-
 
 export const workspaceFileAccessor: FileAccessor = {
 	isWindows: typeof process !== 'undefined' && process.platform === 'win32',

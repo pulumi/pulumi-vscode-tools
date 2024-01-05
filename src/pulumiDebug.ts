@@ -52,23 +52,12 @@ export class PulumiDebugSession extends LoggingDebugSession {
 
 	private _configurationDone = new Subject();
 
-	private _cancellationTokens = new Map<number, boolean>();
-
-	private _reportProgress = false;
-	private _progressId = 10000;
-	private _cancelledProgressId: string | undefined = undefined;
-	private _isProgressCancellable = true;
-
-	private _valuesInHex = false;
-
-	private _addressesInHex = true;
-
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
 	 * We configure the default implementation of a debug adapter here.
 	 */
 	public constructor(session: vscode.DebugSession, fileAccessor: FileAccessor) {
-		super("mock-debug.txt");
+		super("pulumi-debug.log");
 		this._session = session;
 
 		// this debugger uses zero-based lines and columns
@@ -82,21 +71,15 @@ export class PulumiDebugSession extends LoggingDebugSession {
 	 */
 	protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
 
-		if (args.supportsProgressReporting) {
-			this._reportProgress = true;
-		}
-
 		// build and return the capabilities of this debug adapter:
 		response.body = response.body || {};
 
 		// the adapter implements the configurationDone request.
 		response.body.supportsConfigurationDoneRequest = true;
 
-		// make VS Code send cancel request
-		response.body.supportsCancelRequest = true;
-
-		response.body.supportTerminateDebuggee = true;
-		response.body.supportsTerminateRequest = true;
+		// the Automation API has no apparent ability to cancel an outstanding operation,
+		// so how shall we support a termination request?
+		response.body.supportsTerminateRequest = false;
 
 		this.sendResponse(response);
 
@@ -115,19 +98,20 @@ export class PulumiDebugSession extends LoggingDebugSession {
 		this._configurationDone.notify();
 	}
 
-	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
-		console.log(`disconnectRequest suspend: ${args.suspendDebuggee}, terminate: ${args.terminateDebuggee}`);
+	protected launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
+		console.info(`launchRequest args: ${JSON.stringify(args)}`);
+		this.sendResponse(response);
+
+		this.execute(args).catch((err) => {
+			console.error(`execute error: ${err}`);
+			this.sendEvent(new TerminatedEvent());
+		});
 	}
 
-	// protected async attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments) {
-	// 	return this.launchRequest(response, args);
-	// }
+	private async execute(args: ILaunchRequestArguments) {
 
-	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
-		console.log(`launchRequest args: ${JSON.stringify(args)}`);
-
-		// wait 1 second until configuration has finished (and configurationDoneRequest has been called)
-		await this._configurationDone.wait(1000);
+		// wait until configuration has finished (and configurationDoneRequest has been called)
+		await this._configurationDone.wait();
 
 		// Create our stack using a local program
 		const programArgs: LocalProgramArgs = {
@@ -142,28 +126,45 @@ export class PulumiDebugSession extends LoggingDebugSession {
 				"PULUMI_ENABLE_DEBUGGING": "true"
 			},
 		});
-		console.info("successfully initialized stack");
 
 		// start the program
-		stack.preview({ 
-			onOutput: this.onOutput.bind(this),
-			onEvent: this.onEngineEvent.bind(this), 
-			color: "never",
-		}).then((previewRes) => {
-			console.info("preview is done");
-		}).catch((err) => {
-			// TODO handle
-			console.error(err);
-		});
-		
-		this.sendResponse(response);		
+		switch (args.command) {
+			case "up":
+				const upResult = await stack.up({ 
+					onOutput: this.onOutput.bind(this),
+					onEvent: this.onEngineEvent.bind(this), 
+					color: "never",
+				});
+				console.info(`up result: ${JSON.stringify(upResult)}`);
+				break;
+				
+			case "preview":
+				const previewResult = await stack.preview({ 
+					onOutput: this.onOutput.bind(this),
+					onEvent: this.onEngineEvent.bind(this), 
+					color: "never",
+				});
+				console.info(`preview result: ${JSON.stringify(previewResult)}`);
+				break;
+
+			case "destroy":
+				const destroyResult = await stack.destroy({ 
+					onOutput: this.onOutput.bind(this),
+					onEvent: this.onEngineEvent.bind(this), 
+					color: "never",
+				});
+				console.info(`up result: ${JSON.stringify(destroyResult)}`);
+				break;
+		}
 	}
 
+	// onOutput is called when Pulumi produces output.
 	private onOutput(out: string) {
 		const e: DebugProtocol.OutputEvent = new OutputEvent(out, 'stdout');
 		this.sendEvent(e);
 	}
 
+	// onEngineEvent is called when the Pulumi engine produces an event.
 	private onEngineEvent(event: EngineEvent) {
 		console.info(`engine event: ${JSON.stringify(event)}`);
 		const e = event as EngineEventExtended;
@@ -201,27 +202,12 @@ export class PulumiDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
+	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
 		// runtime supports no breakpoints so just return an empty array.
 		response.body = {
 			breakpoints: []
 		};
 		this.sendResponse(response);
-	}
-
-	protected cancelRequest(response: DebugProtocol.CancelResponse, args: DebugProtocol.CancelArguments) {
-		if (args.requestId) {
-			this._cancellationTokens.set(args.requestId, true);
-		}
-		if (args.progressId) {
-			this._cancelledProgressId = args.progressId;
-		}
-	}
-
-	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request | undefined): void {
-		console.log(`terminateRequest args: ${JSON.stringify(args)}`);
-		this.sendResponse(response);
-		this.sendEvent(new TerminatedEvent());
 	}
 
 	//---- helpers

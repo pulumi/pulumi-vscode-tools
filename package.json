@@ -37,8 +37,7 @@
                 "enum": [
                   "up",
                   "preview",
-                  "destroy",
-                  "cancel"
+                  "destroy"
                 ],
                 "description": "Deployment command (up, preview, destroy, cancel).",
                 "default": "preview"
