@@ -58,7 +58,7 @@ class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationPro
 				{
 					"type": "pulumi",
 					"request": "launch",
-					"name": "Pulumi: preview",
+					"name": "Pulumi: preview -s dev",
 					"command": "preview",
 					"workDir": "${workspaceFolder}",
 					"stackName": "dev",
@@ -67,7 +67,7 @@ class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationPro
 				{
 					"type": "pulumi",
 					"request": "launch",
-					"name": "Pulumi: up",
+					"name": "Pulumi: up -s dev",
 					"command": "up",
 					"workDir": "${workspaceFolder}",
 					"stackName": "dev",
@@ -76,7 +76,7 @@ class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationPro
 				{
 					"type": "pulumi",
 					"request": "launch",
-					"name": "Pulumi: destroy",
+					"name": "Pulumi: destroy -s dev",
 					"command": "destroy",
 					"workDir": "${workspaceFolder}",
 					"stackName": "dev",
