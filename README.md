@@ -1,71 +1,76 @@
-# pulumi-vscode-tools README
+# Visual Studio Code Pulumi Tools
 
-This is the README for your extension "pulumi-vscode-tools". After writing up a brief description, we recommend including the following sections.
+The extension for developers building Pulumi applications.
 
-## Features
+_Note_: This extension is in a public beta. If you have suggestions for features or find bugs, please open an issue.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Features include:
+- Run your Pulumi program from within Visual Studio Code.
+- Launch your program under a debugger.
+- IntelliSense and linting for Pulumi YAML.
+- Automatically generate a launch configuration for a Pulumi project.
+  
+## Getting Started
 
-For example if there is an image subfolder under your extension project workspace:
+_Note_: This is prerelease software requiring a special build of Pulumi, see https://github.com/pulumi/pulumi/pull/14516.
 
-\!\[feature X\]\(images/feature-x.png\)
+### Install the software
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+1. Install Pulumi using [these instructions](https://www.pulumi.com/docs/install/).
+2. Install the [Pulumi Tools extension](https://marketplace.visualstudio.com/items?itemName=pulumi.pulumi-vscode-tools) using Visual Studio Marketplace.
 
-## Requirements
+### Open a Project
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Open a new or existing Pulumi project as a VS Code workspace. This extension supports both [single-folder workspaces](https://code.visualstudio.com/docs/editor/workspaces#_singlefolder-workspaces)
+and [multi-root workspaces](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces).
+
+### Start Debugging
+
+Pulumi programs are run (with or without debugging) using a [launch configuration](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations). Select the Run and Debug icon in the Activity Bar on the side of VS Code, 
+then use an automatic debug configuration or create a launch configuration file for your project.
+
+The extension automatically generates a debug configuration to run `pulumi up` or `pulumi preview`
+for the current Pulumi stack. To use an automatic debug configuration, do the following:
+
+1. Select the __Run and Debug__ icon.
+2. Choose __Show all automatic debug configurations__.
+3. Select "Pulumi..." then "Pulumi: preview" or "Pulumi: up".
+4. Click the __Start Debugging__ icon on the selected configuration.
+
+Alternatively, you can run your configuration through the Command Palette (⇧⌘P) by filtering on __Debug: Select and Start Debugging__.
+
+### Create a Launch Configuration
+
+To create a customized launch configuration, do one of the following:
+
+1. When selecting an automatic debug configuration, click the gear icon to customize the configuration.
+2. Create a launch.json file and use a configuration template.
+
+The extension provides the following configuration templates:
+- `Pulumi: up`
+- `Pulumi: preview`
+
+The following properties are supported:
+
+| `name` | string | The configuration name. |  |
+|---|---|---|---|
+| `type` | string | Use `pulumi`. |  |
+| `request` | string | Use `launch`. |  |
+| `command` | string | Deployment command (up, preview, destroy). |  |
+| `stackName` | string | The name of the stack to operate on. Defaults to the ~current stack~ stack named `dev`. |  |
+| `workDir` | string | Run Pulumi as if it had been started in another directory. |  |
+| `env` | object | Environment variables for the Pulumi CLI. |  |
+| `stopOnEntry` | boolean | Automatically stop the program to wait for the debugger to attach. |  |
+| `noDebug` | boolean | Run without debugging. |  |
+
+### Run without Debugging
+To run without debugging, do one of the following:
+
+1. With a launch configuration selected, select __Run Without Debugging__ on the Run menu.
+2. Add `"noDebug": "true"` property to your launch configuration.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Releases
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+See the [Releases](https://github.com/pulumi/pulumi-vscode-tools/releases) section for latest release information.
