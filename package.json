@@ -9,6 +9,9 @@
   "categories": [
     "Other"
   ],
+  "extensionDependencies": [
+    "pulumi.pulumi-lsp-client"
+  ],
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
     "onDebugInitialConfigurations:pulumi",
