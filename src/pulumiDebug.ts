@@ -52,6 +52,8 @@ export class PulumiDebugSession extends LoggingDebugSession {
 
 	private _configurationDone = new Subject();
 
+	private _abortController = new AbortController();
+
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
 	 * We configure the default implementation of a debug adapter here.
@@ -129,8 +131,8 @@ export class PulumiDebugSession extends LoggingDebugSession {
 	}
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
-		// TODO abort any outstanding stack operation
-
+		// abort any outstanding stack operation
+		this._abortController.abort();
 		super.disconnectRequest(response, args, request);
 	}
 
@@ -162,6 +164,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
+					signal: this._abortController.signal,
 				});
 				console.info(`up result: ${JSON.stringify(upResult)}`);
 				break;
@@ -171,6 +174,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
+					signal: this._abortController.signal,
 				});
 				console.info(`preview result: ${JSON.stringify(previewResult)}`);
 				break;
@@ -180,6 +184,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
+					signal: this._abortController.signal,
 				});
 				console.info(`up result: ${JSON.stringify(destroyResult)}`);
 				break;
