@@ -6,6 +6,10 @@
   "engines": {
     "vscode": "^1.84.0"
   },
+  "repository": { 
+    "type": "git", 
+    "url": "https://github.com/pulumi/pulumi-vscode-tools.git" 
+  },
   "categories": [
     "Other"
   ],
