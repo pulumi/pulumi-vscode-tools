@@ -63,6 +63,11 @@
                 "type": "boolean",
                 "description": "Automatically stop after launch.",
                 "default": true
+              },
+              "noDebug": {
+                "type": "boolean",
+                "description": "Run without debugging.",
+                "default": false
               }
             }
           }
@@ -76,7 +81,7 @@
             "body": {
               "type": "pulumi",
               "request": "launch",
-              "name": "Pulumi: preview",
+              "name": "pulumi preview",
               "command": "preview",
               "workDir": "^\"\\${workspaceFolder}\"",
               "stackName": "dev",
@@ -89,7 +94,7 @@
             "body": {
               "type": "pulumi",
               "request": "launch",
-              "name": "Pulumi: up",
+              "name": "pulumi up",
               "command": "up",
               "workDir": "^\"\\${workspaceFolder}\"",
               "stackName": "dev",
@@ -102,7 +107,7 @@
             "body": {
               "type": "pulumi",
               "request": "launch",
-              "name": "Pulumi: destroy",
+              "name": "pulumi destroy",
               "command": "destroy",
               "workDir": "^\"\\${workspaceFolder}\"",
               "stackName": "dev",
