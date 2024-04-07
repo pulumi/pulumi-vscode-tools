@@ -52,13 +52,18 @@
       },
       {
 				"command": "pulumi.esc.selectForCompare",
-				"title": "Select for compare",
-				"category": "File"
+				"title": "Select for compare"
 			},
 			{
 				"command": "pulumi.esc.compareWithSelected",
 				"title": "Compare With Selected"
+			},
+			{
+				"command": "pulumi.esc.tagRevision",
+				"title": "Tag",
+        "icon": "$(tag)"
 			}
+
     ],
     "menus": {
       "editor/title": [
@@ -92,13 +97,17 @@
           "group": "inline"
         },
         {
+					"command": "pulumi.esc.tagRevision",
+					"when": "view == pulumi-esc-explorer && viewItem == revision",
+          "group": "inline"
+				},
+        {
 					"command": "pulumi.esc.selectForCompare",
-					"group": "1_diff@1",
-					"when": "view == pulumi-esc-explorer && viewItem == environment "
+					"when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision)"
 				},
 				{
 					"command": "pulumi.esc.compareWithSelected",
-					"when": "view == pulumi-esc-explorer && viewItem == environment && pulumi.esc.compareEnabled"
+					"when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision) && pulumi.esc.compareEnabled"
 				}
       ]
     },
