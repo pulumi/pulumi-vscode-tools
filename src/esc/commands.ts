@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
 import * as cli from './cli';
-import { Environment } from './env_tree_data_provider';
+import { Environment, Revision } from './env_tree_data_provider';
 import { formEnvUri } from './environmentUri';
 
 function inputError(value: string): vscode.InputBoxValidationMessage {
@@ -118,3 +118,43 @@ export function deleteEnvironmentCommand(): vscode.Disposable {
         await vscode.commands.executeCommand('pulumi.esc.refresh');
     });
 }
+
+export function tagRevisionCommand(): vscode.Disposable {
+    return vscode.commands.registerCommand('pulumi.esc.tagRevision', async (rev: Revision) => {
+        if (!rev) {
+            return;
+        }
+
+        const api = new EscApi(rev.org);
+
+        const tagName = await vscode.window.showInputBox({
+            prompt: `Type the tag you want to apply to ${rev.envName}:${rev.revision}`,
+            placeHolder: 'tag name',
+        });
+
+        if (!tagName) {
+            return;
+        }
+
+        await api.tagRevision(rev.envName, tagName, rev.revision);
+        await vscode.commands.executeCommand('pulumi.esc.refresh');
+    });
+}
+
+export function compareFilesCommands(): vscode.Disposable {
+    let selected: Environment | undefined;
+    const selectForCompare = vscode.commands.registerCommand('pulumi.esc.selectForCompare', async (env: Environment) => {
+      selected = env;
+      vscode.commands.executeCommand('setContext', 'pulumi.esc.compareEnabled', true);
+    });
+  
+    const compareWithSelected = vscode.commands.registerCommand('pulumi.esc.compareWithSelected', async (env: Environment) => {
+      if (selected) {
+        vscode.commands.executeCommand('vscode.diff', selected.resourceUri, env.resourceUri);
+        vscode.commands.executeCommand('setContext', 'pulumi.esc.compareEnabled', false);
+        selected = undefined;
+      }
+    });
+  
+    return vscode.Disposable.from(selectForCompare, compareWithSelected);
+  }

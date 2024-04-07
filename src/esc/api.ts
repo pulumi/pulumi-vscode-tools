@@ -22,8 +22,23 @@ export default class EscApi {
         return environments;
     }
 
+    async listRevisions(envName: string): Promise<models.EnvironmentRevision[]> {
+        const data = await this.get(`/api/preview/environments/${this.org}/${envName}/revisions?limit=10`, "Failed to list revisions");
+        return data;
+    }
+
+    async listTags(envName: string): Promise<models.Tag[]> {
+        const data = await this.get(`/api/preview/environments/${this.org}/${envName}/tags`, "Failed to list tags");
+        return data.tags;
+    }
+
     async getEnvironment(envName: string): Promise<string> {
         const data = await this.get(`/api/preview/environments/${this.org}/${envName}`, "Failed to get environment yaml");
+        return data;
+    }
+
+    async getEnvironmentRevision(envName: string, revision: string): Promise<string> {
+        const data = await this.get(`/api/preview/environments/${this.org}/${envName}/revisions/${revision}`, "Failed to get environment revision yaml");
         return data;
     }
 
@@ -33,7 +48,7 @@ export default class EscApi {
     }
 
     async openEnvironment(envName: string) {
-        const openInfo = await this.post(`/api/preview/environments/${this.org}/${envName}/open`, "Failed to open environment");
+        const openInfo = await this.post(`/api/preview/environments/${this.org}/${envName}/open`, "", "Failed to open environment");
 
         if (!openInfo.id) {
             throw new Error("Failed to open environment");
@@ -43,8 +58,19 @@ export default class EscApi {
         return data;
     }
 
+
+    async tagRevision(envName: string, tagName:string, revision: number): Promise<string> {
+        const payload = {
+            revision: revision,
+        };
+
+        const body = JSON.stringify(payload);
+        const data = await this.post(`/api/preview/environments/${this.org}/${envName}/tags/${tagName}`, body, "Failed to tag revision");
+        return data;
+    }
+
     async createEnvironment(envName: string): Promise<string> {
-        const data = await this.post(`/api/preview/environments/${this.org}/${envName}`, "Failed to create environment");
+        const data = await this.post(`/api/preview/environments/${this.org}/${envName}`, "", "Failed to create environment");
         return data;
     }
 
@@ -103,10 +129,10 @@ export default class EscApi {
         }
     }
 
-    private async post(path: string, errorDescription: string) {
+    private async post(path: string, content: string = "", errorDescription: string) {
         try {
             const request = await this.createRequest();
-            const response = await request.post(path);
+            const response = await request.post(path, content);
             return response.data;
         } catch (err: any) {
             throw new Error(errorDescription);

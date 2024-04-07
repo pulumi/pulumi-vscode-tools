@@ -1,5 +1,14 @@
 
 
+export interface EnvironmentRevision {
+    number: number;
+    tags?: Array<string>;
+}
+
+export interface Tag {
+    name: string;
+    revision: number;
+}
 
 /**
  * 

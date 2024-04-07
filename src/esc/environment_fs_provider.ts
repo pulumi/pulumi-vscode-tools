@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as cli from './cli'; // Import the missing 'cli' module
 import EscApi from './api';
 import * as yaml from "js-yaml";
-import { parseEnvUri } from './environmentUri';
+import { parseEnvUri, parseRevision } from './environmentUri';
 import { parse } from 'path';
 
 const defaultYaml = `# See https://www.pulumi.com/docs/esc/reference/ for additional examples.
@@ -41,7 +41,7 @@ values:
   # Configuration nested under the "pulumiConfig" key will be available to Pulumi stacks that
   # reference this Environment during \`pulumi up/preview/refresh/destroy\`
   pulumiConfig:
-    example: \${example.setting}`
+    example: \${example.setting}`;
 
 export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider, vscode.TextDocumentContentProvider {
 
@@ -49,7 +49,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
 
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
-        if (uri.path.includes('open')) {
+        if (uri.path.includes('open') || uri.path.includes('revision')) {
             return {
                 type: vscode.FileType.File,
                 ctime: 0,
@@ -58,6 +58,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
                 permissions: vscode.FilePermission.Readonly
             };
         }
+        
         return {
             type: vscode.FileType.File,
             ctime: 0,
@@ -78,6 +79,10 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
         
         if (uri.path.includes('decrypt')) {
             const yaml = await api.decryptEnvironment(envName);
+            return yaml;
+        } else if (uri.path.includes('revision')) {
+            const revision = parseRevision(uri);
+            const yaml = await api.getEnvironmentRevision(envName, revision);
             return yaml;
         } else if (uri.path.includes('open')) {
             const format = uri.path.split('/').pop();
