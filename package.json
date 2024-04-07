@@ -24,7 +24,8 @@
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
     "onDebugInitialConfigurations:pulumi",
-    "onDebugResolve:pulumi"
+    "onDebugResolve:pulumi",
+    "onFileSystem:pulumi"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -49,7 +50,122 @@
         }
       }
     ],
-    "commands": [],
+    "commands": [
+      {
+        "command": "pulumi.esc.add-env",
+        "title": "Add Environment",
+        "icon": "$(add)"
+      },
+      {
+        "command": "pulumi.esc.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "pulumi.esc.open-env",
+        "title": "Open Environment",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "pulumi.esc.delete-env",
+        "title": "Delete Environment",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "pulumi.esc.decrypt-env",
+        "title": "Decryt Environment",
+        "icon": "$(references)"
+      },
+      {
+				"command": "pulumi.esc.selectForCompare",
+				"title": "Select for compare",
+				"category": "File"
+			},
+			{
+				"command": "pulumi.esc.compareWithSelected",
+				"title": "Compare With Selected"
+			}
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceScheme == pulumi && open not in resourceFilename",
+          "command": "pulumi.esc.open-env",
+          "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "pulumi.esc.add-env",
+          "when": "view == pulumi-esc-explorer",
+          "group": "navigation"
+        },
+        {
+          "command": "pulumi.esc.refresh",
+          "when": "view == pulumi-esc-explorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pulumi.esc.delete-env",
+          "when": "view == pulumi-esc-explorer && viewItem == environment",
+          "group": "inline"
+        },
+        {
+          "command": "pulumi.esc.decrypt-env",
+          "when": "view == pulumi-esc-explorer && viewItem == environment",
+          "group": "inline"
+        },
+        {
+					"command": "pulumi.esc.selectForCompare",
+					"group": "1_diff@1",
+					"when": "view == pulumi-esc-explorer && viewItem == environment "
+				},
+				{
+					"command": "pulumi.esc.compareWithSelected",
+					"when": "view == pulumi-esc-explorer && viewItem == environment && pulumi.esc.compareEnabled"
+				}
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "pulumi.esc.add-env",
+        "key": "ctrl+a",
+        "mac": "cmd+a"
+      },
+      {
+        "command": "pulumi.esc.refresh",
+        "key": "ctrl+r",
+        "mac": "cmd+r"
+      }
+      
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pulumi-esc-explorer",
+          "title": "Pulumi ESC Explorer",
+          "icon": "resources/pulumi-esc-explorer.svg"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "pulumi-esc-explorer-tree",
+          "name": "Pulumi ESC Explorer",
+          "icon": "resources/pulumi-esc-explorer.svg"
+        }
+      ],
+      "pulumi-esc-explorer": [
+        {
+          "id": "pulumi-esc-explorer",
+          "name": "Pulumi ESC Explorer",
+          "icon": "resources/pulumi-esc-explorer.svg"
+        }
+      ]
+    },
     "debuggers": [
       {
         "type": "pulumi",
@@ -143,6 +259,10 @@
   "dependencies": {
     "@pulumi/pulumi": "dev",
     "@vscode/debugadapter": "^1.64.0",
-    "await-notify": "^1.0.1"
+    "await-notify": "^1.0.1",
+    "@vscode/codicons": "^0.0.35",
+    "axios": "^1.6.8",
+    "js-yaml": "^4.1.0",
+    "yaml": "^2.4.1"
   }
 }
