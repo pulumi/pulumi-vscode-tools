@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
-import * as cli from './cli'; // Import the missing 'cli' module
 import EscApi from './api';
 import * as yaml from "js-yaml";
-import { parseEnvUri, parseRevision } from './environmentUri';
-import { parse } from 'path';
+import { parseEnvUri, parseRevision } from './uriHelper';
 
 const defaultYaml = `# See https://www.pulumi.com/docs/esc/reference/ for additional examples.
 
@@ -47,9 +45,11 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
 
     private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
+    constructor(private api: EscApi) {}
 
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
-        if (uri.path.includes('open') || uri.path.includes('revision')) {
+        const parts = uri.path.split("/");
+        if (parts.includes('open') || parts.includes('rev')) {
             return {
                 type: vscode.FileType.File,
                 ctime: 0,
@@ -75,18 +75,18 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
 
     private async getEnvironmentYaml(uri: vscode.Uri) {
         const { org, envName } = parseEnvUri(uri);
-        const api = new EscApi(org);
         
-        if (uri.path.includes('decrypt')) {
-            const yaml = await api.decryptEnvironment(envName);
+        const parts = uri.path.split("/");
+        if (parts.includes('decrypt')) {
+            const yaml = await this.api.decryptEnvironment(org, envName);
             return yaml;
-        } else if (uri.path.includes('revision')) {
+        } else if (parts.includes('rev')) {
             const revision = parseRevision(uri);
-            const yaml = await api.getEnvironmentRevision(envName, revision);
+            const yaml = await this.api.getEnvironmentRevision(org, envName, revision);
             return yaml;
-        } else if (uri.path.includes('open')) {
+        } else if (parts.includes('open')) {
             const format = uri.path.split('/').pop();
-            const env = await api.openEnvironment(envName);
+            const env = await this.api.openEnvironment(org, envName);
             const environment = valueToJSON({ value: env.properties || {} }, false);
             switch (format) {
                 case "json":
@@ -101,7 +101,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
                     return "";
             }
         } else {
-            const yaml = await api.getEnvironment(envName);
+            const yaml = await this.api.getEnvironment(org, envName);
             if (!yaml || yaml.length === 0) {
                 return defaultYaml;
             }
@@ -113,21 +113,18 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
 
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean, overwrite: boolean }): Promise<void> {
         const { org, envName } = parseEnvUri(uri);
-        const api = new EscApi(org);
-        await api.patchEnvironment(envName, content.toString());
+        await this.api.patchEnvironment(org, envName, content.toString());
         this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
     }
 
     async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
         const { org, envName } = parseEnvUri(uri);
-        const api = new EscApi(org);
-        await api.deleteEnvironment(envName);
+        await this.api.deleteEnvironment(org, envName);
     }
 
     async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
         const {org} = parseEnvUri(uri);
-        const api = new EscApi(org);
-        const environments = await api.listAllEnvironments();
+        const environments = await this.api.listAllEnvironments(org);
         return environments.map(env => [env.name, vscode.FileType.File]);
     }
 

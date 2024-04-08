@@ -41,6 +41,11 @@
         "icon": "$(open-preview)"
       },
       {
+        "command": "pulumi.esc.run",
+        "title": "Add to terminal",
+        "icon": "$(terminal)"
+      },
+      {
         "command": "pulumi.esc.delete-env",
         "title": "Delete Environment",
         "icon": "$(trash)"
@@ -74,11 +79,7 @@
         }
       ],
       "view/title": [
-        {
-          "command": "pulumi.esc.add-env",
-          "when": "view == pulumi-esc-explorer",
-          "group": "navigation"
-        },
+        
         {
           "command": "pulumi.esc.refresh",
           "when": "view == pulumi-esc-explorer",
@@ -86,6 +87,16 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "pulumi.esc.add-env",
+          "when": "view == pulumi-esc-explorer && viewItem == organization",
+          "group": "inline"
+        },
+        {
+          "command": "pulumi.esc.run",
+          "when": "view == pulumi-esc-explorer && viewItem == environment && terminalIsOpen",
+          "group": "inline"
+        },
         {
           "command": "pulumi.esc.delete-env",
           "when": "view == pulumi-esc-explorer && viewItem == environment",
@@ -113,11 +124,6 @@
     },
     "keybindings": [
       {
-        "command": "pulumi.esc.add-env",
-        "key": "ctrl+a",
-        "mac": "cmd+a"
-      },
-      {
         "command": "pulumi.esc.refresh",
         "key": "ctrl+r",
         "mac": "cmd+r"
@@ -134,13 +140,6 @@
       ]
     },
     "views": {
-      "explorer": [
-        {
-          "id": "pulumi-esc-explorer-tree",
-          "name": "Pulumi ESC Explorer",
-          "icon": "resources/pulumi-esc-explorer.svg"
-        }
-      ],
       "pulumi-esc-explorer": [
         {
           "id": "pulumi-esc-explorer",
