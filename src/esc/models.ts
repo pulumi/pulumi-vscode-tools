@@ -1,4 +1,20 @@
 
+export interface OrganizationSummary {
+    githubLogin: string;
+    name: string;
+    avatarUrl: string;
+}
+
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    githubLogin: string;
+    avatarUrl: string;
+    hasMFA: boolean;
+    organizations: OrganizationSummary[];
+}
 
 export interface EnvironmentRevision {
     number: number;

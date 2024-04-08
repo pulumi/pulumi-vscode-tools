@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
 import * as cli from './cli';
-import { Environment, Revision } from './env_tree_data_provider';
-import { formEnvUri } from './environmentUri';
+import { Organization, Environment, Revision } from './env_tree_data_provider';
+import { formEnvUri } from './uriHelper';
+import { isPulumiEscEditor } from './editorHelper';
 
 function inputError(value: string): vscode.InputBoxValidationMessage {
     return {
@@ -11,11 +12,8 @@ function inputError(value: string): vscode.InputBoxValidationMessage {
     };
 }
 
-export function addEnvironmentCommand(): vscode.Disposable {
-    return vscode.commands.registerCommand('pulumi.esc.add-env', async () => {
-        const org = await cli.organization();
-        const api = new EscApi(org);
-
+export function addEnvironmentCommand(api: EscApi): vscode.Disposable {
+    return vscode.commands.registerCommand('pulumi.esc.add-env', async (org: Organization) => {
         const name = await vscode.window.showInputBox({
             prompt: 'Enter the name of the environment',
             placeHolder: 'Environment Name',
@@ -39,7 +37,7 @@ export function addEnvironmentCommand(): vscode.Disposable {
                         return inputError('Name is reserved by Pulumi');
                 }
                 
-                if (await api.environmentExists(value)) {
+                if (await api.environmentExists(org.org, value)) {
                     return inputError('An environment with this name already exists');
                 }
 
@@ -51,9 +49,9 @@ export function addEnvironmentCommand(): vscode.Disposable {
             return;
         }
 
-        await api.createEnvironment(name);
+        await api.createEnvironment(org.org, name);
         
-        vscode.commands.executeCommand('vscode.open', formEnvUri(org, name));
+        vscode.commands.executeCommand('vscode.open', formEnvUri(org.org, name));
         vscode.commands.executeCommand('pulumi.esc.refresh');
     });
 }
@@ -71,18 +69,15 @@ export function decryptEnvironmentCommand(): vscode.Disposable {
 export function openEnvironmentCommand(): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.open-env', async () => {
         const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-			return; // no editor
-		}
-		const { document } = editor;
-		if (document.uri.scheme !== "pulumi") {
-			return; // not my scheme
-		}
-    
+
+        if (!isPulumiEscEditor(editor)) {
+            return;
+        }
+
         const format = await vscode.window.showQuickPick(['yaml', 'json', 'shell', 'dotenv'], {
             placeHolder: 'format',
         });
-        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`${document.uri.toString()}/open/${format}`));
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`${editor!.document.uri.toString()}/open/${format}`));
         await vscode.window.showTextDocument(doc, {
             preview: true,
             preserveFocus: true,
@@ -91,13 +86,11 @@ export function openEnvironmentCommand(): vscode.Disposable {
     });
 }
 
-export function deleteEnvironmentCommand(): vscode.Disposable {
+export function deleteEnvironmentCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.delete-env', async (env: Environment) => {
         if (!env) {
             return;
         }
-
-        const api = new EscApi(env.org);
 
         const name = await vscode.window.showInputBox({
             prompt: `Type the environment name ${env.envName} to confirm delete.`,
@@ -114,18 +107,16 @@ export function deleteEnvironmentCommand(): vscode.Disposable {
             return;
         }
 
-        await api.deleteEnvironment(env.envName);
+        await api.deleteEnvironment(env.org, env.envName);
         await vscode.commands.executeCommand('pulumi.esc.refresh');
     });
 }
 
-export function tagRevisionCommand(): vscode.Disposable {
+export function tagRevisionCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.tagRevision', async (rev: Revision) => {
         if (!rev) {
             return;
         }
-
-        const api = new EscApi(rev.org);
 
         const tagName = await vscode.window.showInputBox({
             prompt: `Type the tag you want to apply to ${rev.envName}:${rev.revision}`,
@@ -136,8 +127,20 @@ export function tagRevisionCommand(): vscode.Disposable {
             return;
         }
 
-        await api.tagRevision(rev.envName, tagName, rev.revision);
+        await api.tagRevision(rev.org, rev.envName, tagName, rev.revision);
         await vscode.commands.executeCommand('pulumi.esc.refresh');
+    });
+}
+
+export function runCommand(): vscode.Disposable {
+    return vscode.commands.registerCommand('pulumi.esc.run', async (env: Environment) => {
+        const terminal = vscode.window.activeTerminal;
+        if (!env || !terminal) {
+            return;
+        }
+
+        terminal.sendText(`esc run ${env.org}/${env.envName} --- `, false);
+        terminal.show();
     });
 }
 
