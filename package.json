@@ -137,6 +137,6 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@pulumi/pulumi": "^3.93.0"
+    "@pulumi/pulumi": "^3.120.0"
   }
 }
