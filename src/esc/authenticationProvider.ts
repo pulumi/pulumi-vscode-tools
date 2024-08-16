@@ -205,7 +205,7 @@ export class PulumiAuthenticationProvider
         }
 
         resolve(access_token);
-        res.end("You are logged into to Pulumi Cloud. You can now close this tab.");
+        res.end("You are logged into Pulumi Cloud. You can now close this tab.");
         server.close();
       });
 
