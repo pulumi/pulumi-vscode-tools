@@ -27,9 +27,35 @@
     "onDebugResolve:pulumi",
     "onFileSystem:pulumi"
   ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": true
+  },
   "main": "./out/extension.js",
   "contributes": {
-    "configuration": [
+    "authentication": [
+      {
+        "label": "Pulumi Cloud",
+        "id": "pulumi"
+      }
+    ],
+    "configuration": [{
+        "title": "Pulumi Cloud",
+        "properties": {
+          "pulumi.api-url": {
+            "type": "string",
+            "default": "https://api.pulumi.com",
+            "description": "Pulumi API URL"
+          },
+          "pulumi.console-url": {
+            "type": "string",
+            "default": "https://app.pulumi.com",
+            "description": "Pulumi Console URL"
+          }
+        }
+      },
       {
         "id": "pulumi",
         "title": "Pulumi Tools",
@@ -77,8 +103,13 @@
         "icon": "$(trash)"
       },
       {
+        "command": "pulumi.login",
+        "title": "Login to Pulumi",
+        "icon": "$(sign-in)"
+      },
+      {
         "command": "pulumi.esc.decrypt-env",
-        "title": "Decryt Environment",
+        "title": "Decrypt Environment",
         "icon": "$(references)"
       },
       {
@@ -174,6 +205,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "pulumi-esc-explorer",
+        "contents": "Welcome to Pulumi ESC! You will now be able to view and modify your ESC Environments inside VSCode.  To get started, login to Pulumi Cloud. \n[Login to Pulumi](command:pulumi.login)."
+      }
+    ],
     "debuggers": [
       {
         "type": "pulumi",

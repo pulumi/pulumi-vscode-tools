@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import EscApi from './api';
 import { formEnvUri, formOrgUri,  } from './uriHelper';
 import { isPulumiEscEditor, isPulumiEscDocument } from './editorHelper';
+import * as config from "./config";
 
 export function trackEnvironmentEditorSelection(escTreeProvider: EnvironmentsTreeDataProvider, treeView: vscode.TreeView<any>): (e: vscode.TextEditor | undefined) => any {
     return (editor) => {
@@ -49,6 +50,10 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
     }
 
     async getChildren(element?: EscTreeItem): Promise<EscTreeItem[]> {
+        if (await config.authToken() === "") {
+            return [];
+        }
+
         if (!element) {
             return await this.getOrganization();
         }
@@ -72,15 +77,9 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
     private async getRevisions(env: Environment) {
         const { org, envName } = env;
 
-        const [revisions, tags] = await Promise.all([this.api.listRevisions(org, envName), this.api.listTags(org, envName)]);
+        const revisions = await this.api.listRevisions(org, envName);
 
-        const revTagMap = new Map<number, string[]>();
-        tags.forEach((tag) => {
-            const tags = revTagMap[tag.revision] || [];
-            tags.push(tag.name);
-            revTagMap[tag.revision] = tags;
-        });
-        const revItems = revisions.map(rev => new Revision(org, envName, rev.number, env, revTagMap[rev.number] || [], vscode.TreeItemCollapsibleState.None));
+        const revItems = revisions.map(rev => new Revision(org, envName, rev.number, env, rev.tags || [], vscode.TreeItemCollapsibleState.None));
         revItems.forEach(item => this.mapResourceUris(item));
 
         return revItems;
