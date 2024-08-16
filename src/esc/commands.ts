@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
-import * as cli from './cli';
+import * as cli from './config';
 import { Organization, Environment, Revision } from './env_tree_data_provider';
 import { formEnvUri } from './uriHelper';
 import { isPulumiEscEditor } from './editorHelper';
@@ -145,19 +145,32 @@ export function runCommand(): vscode.Disposable {
 }
 
 export function compareFilesCommands(): vscode.Disposable {
-    let selected: Environment | undefined;
-    const selectForCompare = vscode.commands.registerCommand('pulumi.esc.selectForCompare', async (env: Environment) => {
-      selected = env;
-      vscode.commands.executeCommand('setContext', 'pulumi.esc.compareEnabled', true);
+	let selected: Environment | undefined;
+	const selectForCompare = vscode.commands.registerCommand('pulumi.esc.selectForCompare', async (env: Environment) => {
+		selected = env;
+		vscode.commands.executeCommand('setContext', 'pulumi.esc.compareEnabled', true);
+	});
+
+	const compareWithSelected = vscode.commands.registerCommand('pulumi.esc.compareWithSelected', async (env: Environment) => {
+		if (selected) {
+		vscode.commands.executeCommand('vscode.diff', selected.resourceUri, env.resourceUri);
+		vscode.commands.executeCommand('setContext', 'pulumi.esc.compareEnabled', false);
+		selected = undefined;
+		}
+	});
+
+	return vscode.Disposable.from(selectForCompare, compareWithSelected);
+}
+
+export function loginCommand(): vscode.Disposable {
+    return vscode.commands.registerCommand('pulumi.login', async () => {
+        await vscode.authentication.getSession("pulumi", [], { createIfNone: true });
     });
-  
-    const compareWithSelected = vscode.commands.registerCommand('pulumi.esc.compareWithSelected', async (env: Environment) => {
-      if (selected) {
-        vscode.commands.executeCommand('vscode.diff', selected.resourceUri, env.resourceUri);
-        vscode.commands.executeCommand('setContext', 'pulumi.esc.compareEnabled', false);
-        selected = undefined;
-      }
+}
+
+
+export function logoutCommand(): vscode.Disposable {
+    return vscode.commands.registerCommand('pulumi.logout', async () => {
+        const session = await vscode.authentication.getSession("pulumi", [], {  });
     });
-  
-    return vscode.Disposable.from(selectForCompare, compareWithSelected);
-  }
+}

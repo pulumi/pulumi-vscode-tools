@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
-import * as cli from './cli';
+import * as config from './config';
 import * as models from './models';
 
 const packageJSON = require("../../package.json");
 
 export default class EscApi {
-    constructor() {
+    private token: string | undefined;
+    constructor(token: string | undefined = undefined) {
+        this.token = token;
     }
 
     async getUserInfo(): Promise<models.User> {
@@ -28,12 +30,12 @@ export default class EscApi {
     }
 
     async listRevisions(org: string, envName: string): Promise<models.EnvironmentRevision[]> {
-        const data = await this.get(`/api/preview/environments/${org}/${envName}/revisions?limit=10`, "Failed to list revisions");
+        const data = await this.get(`/api/preview/environments/${org}/${envName}/versions`, "Failed to list revisions");
         return data;
     }
 
     async listTags(org: string, envName: string): Promise<models.Tag[]> {
-        const data = await this.get(`/api/preview/environments/${org}/${envName}/tags`, "Failed to list tags");
+        const data = await this.get(`/api/preview/environments/${org}/${envName}/versions/tags`, "Failed to list tags");
         return data.tags;
     }
 
@@ -42,8 +44,8 @@ export default class EscApi {
         return data;
     }
 
-    async getEnvironmentRevision(org: string, envName: string, revision: string): Promise<string> {
-        const data = await this.get(`/api/preview/environments/${org}/${envName}/revisions/${revision}`, "Failed to get environment revision yaml");
+    async getEnvironmentRevision(org: string, envName: string, version: string): Promise<string> {
+        const data = await this.get(`/api/preview/environments/${org}/${envName}/versions/${version}`, "Failed to get environment revision yaml");
         return data;
     }
 
@@ -70,7 +72,7 @@ export default class EscApi {
         };
 
         const body = JSON.stringify(payload);
-        const data = await this.post(`/api/preview/environments/${org}/${envName}/tags/${tagName}`, body, "Failed to tag revision");
+        const data = await this.post(`/api/preview/environments/${org}/${envName}/versions/tags/${tagName}`, body, "Failed to tag revision");
         return data;
     }
 
@@ -171,12 +173,17 @@ export default class EscApi {
     }
 
     async createRequest(): Promise<axios.AxiosInstance> {
+        let token = this.token;
+        if (!token) {
+            token = await config.authToken();
+        }
+
         return axios.create({
-            baseURL: await cli.backendUrl(),
+            baseURL: config.apiUrl(),
             headers: {
                 "User-Agent": `vscode/${packageJSON.version}`,
                 "X-Pulumi-Source": "vscode",
-                Authorization: `token ${await cli.authToken()}`,
+                Authorization: `token ${token}`,
             }
         });
     }
