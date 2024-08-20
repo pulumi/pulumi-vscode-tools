@@ -83,6 +83,11 @@
         "icon": "$(add)"
       },
       {
+        "command": "pulumi.esc.add-env-from-project",
+        "title": "Add Environment to Project",
+        "icon": "$(add)"
+      },
+      {
         "command": "pulumi.esc.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
@@ -128,6 +133,44 @@
 
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "pulumi.esc.add-env",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.add-env-from-project",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.open-env",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.run",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.delete-env",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.decrypt-env",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.selectForCompare",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.compareWithSelected",
+          "when": "false"
+        },
+        {
+          "command": "pulumi.esc.tagRevision",
+          "when": "false"
+        }
+      ],
       "editor/title": [
         {
           "when": "resourceScheme == pulumi && open not in resourceFilename",
@@ -147,6 +190,11 @@
         {
           "command": "pulumi.esc.add-env",
           "when": "view == pulumi-esc-explorer && viewItem == organization",
+          "group": "inline"
+        },
+        {
+          "command": "pulumi.esc.add-env-from-project",
+          "when": "view == pulumi-esc-explorer && viewItem == project",
           "group": "inline"
         },
         {
