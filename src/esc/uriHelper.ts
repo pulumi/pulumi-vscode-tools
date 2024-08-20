@@ -1,18 +1,17 @@
 import * as vscode from 'vscode';
 export const PulumiScheme = "pulumi";
 
-export function formEnvUri(org: string, name: string, suffix: string = ""): vscode.Uri {
-    return vscode.Uri.parse(`${PulumiScheme}://env/${org}/${name}${suffix}`);
+export function formEnvUri(org: string, project:string, name: string, suffix: string = ""): vscode.Uri {
+    return vscode.Uri.parse(`${PulumiScheme}://env/${org}/${project}/${name}${suffix}`);
 }
-
 
 export function formOrgUri(org: string): vscode.Uri {
     return vscode.Uri.parse(`${PulumiScheme}://org/${org}`);
 }
 
-export function parseEnvUri(uri: vscode.Uri): { org: string, envName: string } {
-    const [_, org, envName] = uri.path.split("/");
-    return { org, envName };
+export function parseEnvUri(uri: vscode.Uri): { org: string, project: string, envName: string } {
+    const [_, org, project, envName] = uri.path.split("/");
+    return { org, project, envName };
 }
 
 export function parseOrgUri(uri: vscode.Uri): string {

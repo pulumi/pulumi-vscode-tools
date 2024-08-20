@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
-import * as cli from './config';
-import { Organization, Environment, Revision } from './env_tree_data_provider';
+import { Organization, Project, Environment, Revision } from './env_tree_data_provider';
 import { formEnvUri } from './uriHelper';
 import { isPulumiEscEditor } from './editorHelper';
+const validRegex = /^[a-zA-Z][a-zA-Z0-9-_.]*$/;
 
 function inputError(value: string): vscode.InputBoxValidationMessage {
     return {
@@ -12,13 +12,19 @@ function inputError(value: string): vscode.InputBoxValidationMessage {
     };
 }
 
+export function addEnvironmentFromProjectCommand(api: EscApi): vscode.Disposable {
+    return vscode.commands.registerCommand('pulumi.esc.add-env-from-project', async (project: Project) => {
+        return addEnvironment(api, project.org, project.project);
+    });
+}
+
 export function addEnvironmentCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.add-env', async (org: Organization) => {
-        const name = await vscode.window.showInputBox({
-            prompt: 'Enter the name of the environment',
-            placeHolder: 'Environment Name',
+        const project = await vscode.window.showInputBox({
+            prompt: 'What project would you like to add an environment to?',
+            placeHolder: 'Project Name',
             validateInput: async (value) => {
-                const validRegex = /^[a-zA-Z][a-zA-Z0-9-_.]*$/;
+                
                 if (!validRegex.test(value)) {
                     return inputError('Environment name must start with a letter and contain only letters, numbers, hyphens, and underscores');
                 }
@@ -29,31 +35,66 @@ export function addEnvironmentCommand(api: EscApi): vscode.Disposable {
                 if (value.length > 100) {
                     return inputError('Environment name must be fewer than 100 characters');
                 }
+                
                 switch (value) {
+                    case "default":
+                        return inputError('You cannot create environments in the default project');
                     case ".":
                     case "..":
-                    case "open":
-                    case "yaml":
                         return inputError('Name is reserved by Pulumi');
-                }
-                
-                if (await api.environmentExists(org.org, value)) {
-                    return inputError('An environment with this name already exists');
                 }
 
                 return null;
             }
         });
 
-        if (!name) {
+        if (!project) {
             return;
         }
 
-        await api.createEnvironment(org.org, name);
-        
-        vscode.commands.executeCommand('vscode.open', formEnvUri(org.org, name));
-        vscode.commands.executeCommand('pulumi.esc.refresh');
+        addEnvironment(api, org.org, project);
     });
+}
+
+export async function addEnvironment(api: EscApi, org: string, project: string) {
+    const name = await vscode.window.showInputBox({
+        prompt: 'Enter the name of the environment',
+        placeHolder: 'Environment Name',
+        validateInput: async (value) => {
+            if (!validRegex.test(value)) {
+                return inputError('Environment name must start with a letter and contain only letters, numbers, hyphens, and underscores');
+            }
+
+            if (value.length < 2) {
+                return inputError('Environment name must be at least 2 characters');
+            }
+            if (value.length > 100) {
+                return inputError('Environment name must be fewer than 100 characters');
+            }
+            switch (value) {
+                case ".":
+                case "..":
+                case "open":
+                case "yaml":
+                    return inputError('Name is reserved by Pulumi');
+            }
+            
+            if (await api.environmentExists(org, project, value)) {
+                return inputError('An environment with this name already exists');
+            }
+
+            return null;
+        }
+    });
+
+    if (!name) {
+        return;
+    }
+
+    await api.createEnvironment(org, project, name);
+    
+    vscode.commands.executeCommand('vscode.open', formEnvUri(org, project, name));
+    vscode.commands.executeCommand('pulumi.esc.refresh');
 }
 
 export function decryptEnvironmentCommand(): vscode.Disposable {
@@ -62,7 +103,7 @@ export function decryptEnvironmentCommand(): vscode.Disposable {
             return;
         }
 
-        vscode.commands.executeCommand('vscode.open', formEnvUri(env.org, env.envName, "/decrypt"));
+        vscode.commands.executeCommand('vscode.open', formEnvUri(env.org, env.project, env.envName, "/decrypt"));
     });
 }
 
@@ -107,7 +148,7 @@ export function deleteEnvironmentCommand(api: EscApi): vscode.Disposable {
             return;
         }
 
-        await api.deleteEnvironment(env.org, env.envName);
+        await api.deleteEnvironment(env.org, env.project, env.envName);
         await vscode.commands.executeCommand('pulumi.esc.refresh');
     });
 }
@@ -127,7 +168,7 @@ export function tagRevisionCommand(api: EscApi): vscode.Disposable {
             return;
         }
 
-        await api.tagRevision(rev.org, rev.envName, tagName, rev.revision);
+        await api.tagRevision(rev.org, rev.project, rev.envName, tagName, rev.revision);
         await vscode.commands.executeCommand('pulumi.esc.refresh');
     });
 }
@@ -139,7 +180,7 @@ export function runCommand(): vscode.Disposable {
             return;
         }
 
-        terminal.sendText(`esc run ${env.org}/${env.envName} --- `, false);
+        terminal.sendText(`esc run ${env.org}/${env.project}/${env.envName} --- `, false);
         terminal.show();
     });
 }

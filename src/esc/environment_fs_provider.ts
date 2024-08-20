@@ -74,19 +74,19 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
     }
 
     private async getEnvironmentYaml(uri: vscode.Uri) {
-        const { org, envName } = parseEnvUri(uri);
+        const { org, project, envName } = parseEnvUri(uri);
         
         const parts = uri.path.split("/");
         if (parts.includes('decrypt')) {
-            const yaml = await this.api.decryptEnvironment(org, envName);
+            const yaml = await this.api.decryptEnvironment(org, project, envName);
             return yaml;
         } else if (parts.includes('rev')) {
             const revision = parseRevision(uri);
-            const yaml = await this.api.getEnvironmentRevision(org, envName, revision);
+            const yaml = await this.api.getEnvironmentRevision(org, project, envName, revision);
             return yaml;
         } else if (parts.includes('open')) {
             const format = uri.path.split('/').pop();
-            const env = await this.api.openEnvironment(org, envName);
+            const env = await this.api.openEnvironment(org, project, envName);
             const environment = valueToJSON({ value: env.properties || {} }, false);
             switch (format) {
                 case "json":
@@ -101,7 +101,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
                     return "";
             }
         } else {
-            const yaml = await this.api.getEnvironment(org, envName);
+            const yaml = await this.api.getEnvironment(org, project, envName);
             if (!yaml || yaml.length === 0) {
                 return defaultYaml;
             }
@@ -112,20 +112,20 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
     }
 
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean, overwrite: boolean }): Promise<void> {
-        const { org, envName } = parseEnvUri(uri);
-        await this.api.patchEnvironment(org, envName, content.toString());
+        const { org, project, envName } = parseEnvUri(uri);
+        await this.api.patchEnvironment(org, project, envName, content.toString());
         this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
     }
 
     async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
-        const { org, envName } = parseEnvUri(uri);
-        await this.api.deleteEnvironment(org, envName);
+        const { org, project, envName } = parseEnvUri(uri);
+        await this.api.deleteEnvironment(org, project, envName);
     }
 
     async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
         const {org} = parseEnvUri(uri);
         const environments = await this.api.listAllEnvironments(org);
-        return environments.map(env => [env.name, vscode.FileType.File]);
+        return environments.map(env => [`${env.project || "default"}\\${env.name}`, vscode.FileType.File]);
     }
 
     async createDirectory(uri: vscode.Uri): Promise<void> {

@@ -19,6 +19,7 @@ export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
     const auth = new PulumiAuthenticationProvider(context);
     const signInCmd = commands.loginCommand();
     const addEnvCmd = commands.addEnvironmentCommand(api);
+    const addEnvFromProjectCmd = commands.addEnvironmentFromProjectCommand(api);
     const openEnvCmd = commands.openEnvironmentCommand();
     const deleteEnvCmd = commands.deleteEnvironmentCommand(api);
     const decryptEnvCmd = commands.decryptEnvironmentCommand();
@@ -33,7 +34,7 @@ export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
     const sessionChanged = vscode.authentication.onDidChangeSessions(handleAuthSessionChange);
 
     context.subscriptions.push(treeView, docProvider, onOpen, fs, trackActiveEnv, sessionChanged,
-        auth, signInCmd, addEnvCmd, openEnvCmd, deleteEnvCmd, decryptEnvCmd,tagRevisionCmd, compareFilesCmd, runCmd);
+        auth, signInCmd, addEnvCmd, addEnvFromProjectCmd, openEnvCmd, deleteEnvCmd, decryptEnvCmd,tagRevisionCmd, compareFilesCmd, runCmd);
 }
 
 async function handleAuthSessionChange(e: vscode.AuthenticationSessionsChangeEvent): Promise<void> {

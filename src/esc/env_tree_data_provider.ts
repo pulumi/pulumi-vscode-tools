@@ -3,6 +3,7 @@ import EscApi from './api';
 import { formEnvUri, formOrgUri,  } from './uriHelper';
 import { isPulumiEscEditor, isPulumiEscDocument } from './editorHelper';
 import * as config from "./config";
+import { stringTag } from 'yaml/util';
 
 export function trackEnvironmentEditorSelection(escTreeProvider: EnvironmentsTreeDataProvider, treeView: vscode.TreeView<any>): (e: vscode.TextEditor | undefined) => any {
     return (editor) => {
@@ -32,7 +33,7 @@ export function onOpenLanguageSelector(): (e: vscode.TextDocument) => any {
     };
 }
   
-type EscTreeItem = Organization | Environment | Revision;
+type EscTreeItem = Organization | Project | Environment | Revision;
 export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<EscTreeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
     public onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
@@ -58,8 +59,13 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
             return await this.getOrganization();
         }
         if (element instanceof Organization) {
-            return await this.getEnvironments(element);
+            return await this.getProjects(element);
         }
+
+        if (element instanceof Project) {
+            return element.environments;
+        }
+
         if (element instanceof Environment) {
             return await this.getRevisions(element);
         } 
@@ -75,26 +81,36 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
     }
 
     private async getRevisions(env: Environment) {
-        const { org, envName } = env;
+        const { org, project, envName } = env;
 
-        const revisions = await this.api.listRevisions(org, envName);
+        const revisions = await this.api.listRevisions(org, project, envName);
 
-        const revItems = revisions.map(rev => new Revision(org, envName, rev.number, env, rev.tags || [], vscode.TreeItemCollapsibleState.None));
+        const revItems = revisions.map(rev => new Revision(org, env.project, envName, rev.number, env, rev.tags || [], vscode.TreeItemCollapsibleState.None));
         revItems.forEach(item => this.mapResourceUris(item));
 
         return revItems;
     }
 
-    private async getEnvironments(organization: Organization) {
+    private async getProjects(organization: Organization) {
         const { org } = organization;
 
         const environments = await this.api.listAllEnvironments(org);
-        const envItems = environments.map(env => new Environment(org, env.name, vscode.TreeItemCollapsibleState.Collapsed));
+        const envItems = environments.map(env => new Environment(org, env.project, env.name, vscode.TreeItemCollapsibleState.Collapsed));
         envItems.forEach(item => this.mapResourceUris(item));
 
         envItems.sort((a, b) => a.envName.localeCompare(b.envName));
 
-        return envItems;
+        const projectMap = new Map<string, Environment[]>();
+        envItems.forEach(env => {
+            if (!projectMap.has(env.project)) {
+                projectMap.set(env.project, []);
+            }
+            projectMap.get(env.project)?.push(env);
+        });
+
+        const projects = Array.from(projectMap).map(([project, envs]) => new Project(org, project, envs, vscode.TreeItemCollapsibleState.Collapsed));
+        projects.sort((a, b) => a.project.localeCompare(b.project));
+        return projects;
     }
 
     private mapResourceUris(element: EscTreeItem) {
@@ -116,17 +132,36 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
     }
 }
 
+export class Project extends vscode.TreeItem {
+    constructor(
+        public readonly org: string,
+        public readonly project: string,
+        public readonly environments: Environment[],
+        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    ) {
+        super(project, collapsibleState);
+        this.label = project;
+        this.id = `env-${org}-${project}`;
+        if (project == "default") {
+            this.contextValue = 'defaultProject';
+        } else {
+            this.contextValue = 'project';
+        }
+        this.iconPath = new vscode.ThemeIcon("folder");
+    }
+}
 
 export class Environment extends vscode.TreeItem {
     constructor(
         public readonly org: string,
+        public readonly project: string,
         public readonly envName: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     ) {
         super(envName, collapsibleState);
         this.label = envName;
-        const uri = formEnvUri(org, envName);
-        this.id = `env-${org}-${envName}`;
+        const uri = formEnvUri(org, project, envName);
+        this.id = `env-${org}-${project}-${envName}`;
         this.resourceUri = uri;
         this.contextValue = 'environment';
         this.command = {
@@ -140,6 +175,7 @@ export class Environment extends vscode.TreeItem {
 export class Revision extends vscode.TreeItem {
     constructor(
         public readonly org: string,
+        public readonly project: string,
         public readonly envName: string,
         public readonly revision: number,
         public readonly parent: Environment,
@@ -149,9 +185,9 @@ export class Revision extends vscode.TreeItem {
         super(envName, collapsibleState);
         this.label = revision.toString();
         this.description = this.tags.join(",");
-        const base = formEnvUri(org, envName);
+        const base = formEnvUri(org, project, envName);
         const uri = vscode.Uri.joinPath(base, "rev", revision.toString());
-        this.id = `env-${org}-${envName}-${revision}`;
+        this.id = `env-${org}-${project}-${envName}-${revision}`;
         this.resourceUri = uri;
         this.contextValue = 'revision';
         this.command = {

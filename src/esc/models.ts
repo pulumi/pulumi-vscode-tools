@@ -428,6 +428,24 @@ export interface OrgEnvironment {
      * @memberof OrgEnvironment
      */
     'modified': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrgEnvironment
+     */
+    'project': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrgEnvironment
+     */
+
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof OrgEnvironment
+     */
+    tags?: Array<string>;
 }
 /**
  * 
