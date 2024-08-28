@@ -70,6 +70,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "pulumi.esc.search",
+        "title": "Search",
+        "icon": "$(search)"
+      },
+      {
         "command": "pulumi.esc.open-env",
         "title": "Open Environment",
         "icon": "$(open-preview)"
@@ -108,6 +113,20 @@
         "icon": "$(tag)"
 			}
 
+    ],
+    "languages": [
+      {
+        "id": "pulumi-esc",
+        "extensions": [".esc"],
+        "configuration": "./esc-language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "pulumi-esc",
+        "scopeName": "source.esc",
+        "path": "./esc.tmGrammar.json"
+      }
     ],
     "menus": {
       "commandPalette": [
@@ -159,6 +178,11 @@
         
         {
           "command": "pulumi.esc.refresh",
+          "when": "view == pulumi-esc-explorer",
+          "group": "navigation"
+        },        
+        {
+          "command": "pulumi.esc.search",
           "when": "view == pulumi-esc-explorer",
           "group": "navigation"
         }
@@ -227,6 +251,13 @@
           "id": "pulumi-esc-explorer",
           "name": "Pulumi ESC Explorer",
           "icon": "resources/pulumi-esc-explorer.svg"
+        },
+        {
+          "id": "pulumi-esc-search",
+          "name": "Pulumi ESC Search",
+          "icon": "resources/pulumi-esc-explorer.svg",
+          "initialSize": 0.5,
+          "when": "pulumi.esc.search"
         }
       ]
     },

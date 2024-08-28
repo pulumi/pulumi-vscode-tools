@@ -3,6 +3,8 @@ import EscApi from './api';
 import { Organization, Project, Environment, Revision } from './env_tree_data_provider';
 import { formEnvUri } from './uriHelper';
 import { isPulumiEscEditor } from './editorHelper';
+import { EnvironmentsTreeDataProvider } from './env_tree_data_provider';
+
 const validRegex = /^[a-zA-Z][a-zA-Z0-9-_.]*$/;
 
 function inputError(value: string): vscode.InputBoxValidationMessage {
@@ -201,6 +203,31 @@ export function compareFilesCommands(): vscode.Disposable {
 	});
 
 	return vscode.Disposable.from(selectForCompare, compareWithSelected);
+}
+
+export function searchCommand(escTreeProvider: EnvironmentsTreeDataProvider): vscode.Disposable {
+
+    return vscode.commands.registerCommand('pulumi.esc.search', async () => {
+        const query = await vscode.window.showInputBox({
+            prompt: 'Search for environments',
+            placeHolder: 'Search',
+        });
+
+        if (!query) {
+            return;
+        }
+
+        escTreeProvider.search = query;
+        escTreeProvider._onDidChangeTreeData.fire(undefined);
+        vscode.commands.executeCommand('setContext', 'pulumi.esc.search', true);
+        vscode.commands.executeCommand(`pulumi-esc-search.focus`);
+    });
+}
+
+export function refreshCommand(escTreeProviders: EnvironmentsTreeDataProvider[]): vscode.Disposable {
+    return vscode.commands.registerCommand("pulumi.esc.refresh", () => {
+        escTreeProviders.forEach(provider => provider._onDidChangeTreeData.fire(undefined));
+      });
 }
 
 export function loginCommand(): vscode.Disposable {

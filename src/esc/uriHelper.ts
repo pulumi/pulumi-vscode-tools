@@ -9,6 +9,10 @@ export function formOrgUri(org: string): vscode.Uri {
     return vscode.Uri.parse(`${PulumiScheme}://org/${org}`);
 }
 
+export function formSearchUri(): vscode.Uri {
+    return vscode.Uri.parse(`${PulumiScheme}://search`);
+}
+
 export function parseEnvUri(uri: vscode.Uri): { org: string, project: string, envName: string } {
     const [_, org, project, envName] = uri.path.split("/");
     return { org, project, envName };
