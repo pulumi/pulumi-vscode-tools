@@ -13,6 +13,11 @@ export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
     const escEnvironmentProvider = new EnvironmentFileSystemProvider(api);
     const onOpen = vscode.workspace.onDidOpenTextDocument(onOpenLanguageSelector());
     const treeView = vscode.window.createTreeView("pulumi-esc-explorer", { treeDataProvider: escTreeProvider });
+    
+    const searchTreeProvider = new EnvironmentsTreeDataProvider(context, api);
+    searchTreeProvider.searchTree = true;
+    const searchTreeView = vscode.window.createTreeView("pulumi-esc-search", { treeDataProvider: searchTreeProvider });
+
     const fs = vscode.workspace.registerFileSystemProvider('pulumi', escEnvironmentProvider, { isCaseSensitive: true });
     const docProvider = vscode.workspace.registerTextDocumentContentProvider('pulumi', escEnvironmentProvider);
 
@@ -25,6 +30,9 @@ export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
     const decryptEnvCmd = commands.decryptEnvironmentCommand();
     const compareFilesCmd = commands.compareFilesCommands();
     const tagRevisionCmd = commands.tagRevisionCommand(api);
+    
+    const refreshCmd = commands.refreshCommand([escTreeProvider, searchTreeProvider]);
+    const searchCmd = commands.searchCommand(searchTreeProvider);
     const runCmd = commands.runCommand();
     
     const diagnostics = new EscDiagnostics(api);
@@ -33,8 +41,9 @@ export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
     const trackActiveEnv = vscode.window.onDidChangeActiveTextEditor(trackEnvironmentEditorSelection(escTreeProvider, treeView));
     const sessionChanged = vscode.authentication.onDidChangeSessions(handleAuthSessionChange);
 
-    context.subscriptions.push(treeView, docProvider, onOpen, fs, trackActiveEnv, sessionChanged,
-        auth, signInCmd, addEnvCmd, addEnvFromProjectCmd, openEnvCmd, deleteEnvCmd, decryptEnvCmd,tagRevisionCmd, compareFilesCmd, runCmd);
+    context.subscriptions.push(treeView, searchTreeView, docProvider, onOpen, fs, trackActiveEnv, sessionChanged,
+        auth, signInCmd, addEnvCmd, addEnvFromProjectCmd, openEnvCmd, deleteEnvCmd, decryptEnvCmd,tagRevisionCmd, 
+        compareFilesCmd, runCmd, searchCmd, refreshCmd);
 }
 
 async function handleAuthSessionChange(e: vscode.AuthenticationSessionsChangeEvent): Promise<void> {

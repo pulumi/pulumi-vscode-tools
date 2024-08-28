@@ -68,16 +68,21 @@ export default class EscApi {
 
     async tagRevision(org: string, project: string, envName: string, tagName:string, revision: number): Promise<string> {
         const payload = {
+            name: tagName,
             revision: revision,
         };
 
         const body = JSON.stringify(payload);
-        const data = await this.post(`/api/esc/environments/${org}/${project}/${envName}/versions/tags/${tagName}`, body, "Failed to tag revision");
+        const data = await this.post(`/api/esc/environments/${org}/${project}/${envName}/versions/tags`, body, "Failed to tag revision");
         return data;
     }
 
     async createEnvironment(org: string, project: string, envName: string): Promise<string> {
-        const data = await this.post(`/api/esc/environments/${org}/${project}/${envName}`, "", "Failed to create environment");
+        const body = JSON.stringify({
+            project: project,
+            name: envName,
+        });
+        const data = await this.post(`/api/esc/environments/${org}`, body, "Failed to create environment");
         return data;
     }
 
@@ -121,7 +126,6 @@ export default class EscApi {
             throw err;
         }
     }
-
 
     private async delete(path: string, errorDescription: string) {
         try {

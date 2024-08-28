@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
-import { formEnvUri, formOrgUri,  } from './uriHelper';
+import { formEnvUri, formOrgUri, formSearchUri,  } from './uriHelper';
 import { isPulumiEscEditor, isPulumiEscDocument } from './editorHelper';
 import * as config from "./config";
-import { stringTag } from 'yaml/util';
 
 export function trackEnvironmentEditorSelection(escTreeProvider: EnvironmentsTreeDataProvider, treeView: vscode.TreeView<any>): (e: vscode.TextEditor | undefined) => any {
     return (editor) => {
@@ -28,22 +27,21 @@ export function onOpenLanguageSelector(): (e: vscode.TextDocument) => any {
                 await vscode.languages.setTextDocumentLanguage(document, "shellscript");
                 return;
             }
-            await vscode.languages.setTextDocumentLanguage(document, "yaml");
+            await vscode.languages.setTextDocumentLanguage(document, "pulumi-esc");
         }
     };
 }
   
-type EscTreeItem = Organization | Project | Environment | Revision;
+type EscTreeItem = Organization | Project | Environment | Revision | Search;
 export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<EscTreeItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
+    public _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
     public onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
     private data = new Map<string, EscTreeItem>();
+    public search:string = "";
+    public searchTree:boolean = false;
     
 
     constructor(context: vscode.ExtensionContext, private api: EscApi) {
-        vscode.commands.registerCommand("pulumi.esc.refresh", () => {
-            this._onDidChangeTreeData.fire(undefined);
-          });
     }
 
     getTreeItem(element: EscTreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
@@ -55,9 +53,22 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
             return [];
         }
 
+        if (this.searchTree && this.search === "") {
+            return [];
+        }
+
         if (!element) {
+            if (this.searchTree) {
+                return new Array(new Search(this.search, vscode.TreeItemCollapsibleState.Expanded));
+            }
+
             return await this.getOrganization();
         }
+
+        if (element instanceof Search) {
+            return await this.getOrganization();
+        }
+
         if (element instanceof Organization) {
             return await this.getProjects(element);
         }
@@ -75,7 +86,8 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
 
     private async getOrganization() {
         const user = await this.api.getUserInfo();
-        const orgItems = user.organizations.map(org => new Organization(org.githubLogin, org.name, vscode.TreeItemCollapsibleState.Collapsed));
+        const collapsibleState = (this.search === "")  ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.Expanded;
+        const orgItems = user.organizations.map(org => new Organization(org.githubLogin, org.name, collapsibleState));
         orgItems.forEach(item => this.mapResourceUris(item));
         return orgItems;
     }
@@ -95,7 +107,12 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
         const { org } = organization;
 
         const environments = await this.api.listAllEnvironments(org);
-        const envItems = environments.map(env => new Environment(org, env.project, env.name, vscode.TreeItemCollapsibleState.Collapsed));
+        let envItems = environments.map(env => new Environment(org, env.project, env.name, vscode.TreeItemCollapsibleState.Collapsed));
+        let collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+        if (this.search) {
+            envItems = envItems.filter((env) => env.envName.includes(this.search) || env.project.includes(this.search));
+            collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+        }
         envItems.forEach(item => this.mapResourceUris(item));
 
         envItems.sort((a, b) => a.envName.localeCompare(b.envName));
@@ -108,7 +125,7 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
             projectMap.get(env.project)?.push(env);
         });
 
-        const projects = Array.from(projectMap).map(([project, envs]) => new Project(org, project, envs, vscode.TreeItemCollapsibleState.Collapsed));
+        const projects = Array.from(projectMap).map(([project, envs]) => new Project(org, project, envs, collapsibleState));
         projects.sort((a, b) => a.project.localeCompare(b.project));
         return projects;
     }
@@ -142,7 +159,7 @@ export class Project extends vscode.TreeItem {
         super(project, collapsibleState);
         this.label = project;
         this.id = `env-${org}-${project}`;
-        if (project == "default") {
+        if (project === "default") {
             this.contextValue = 'defaultProject';
         } else {
             this.contextValue = 'project';
@@ -211,5 +228,20 @@ export class Organization extends vscode.TreeItem {
         this.resourceUri = uri;
         this.contextValue = 'organization';
         this.iconPath = new vscode.ThemeIcon("organization");
+    }
+}
+
+export class Search extends vscode.TreeItem {
+    constructor(
+        public readonly search: string,
+        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    ) {
+        super(search, collapsibleState);
+        this.label = `Searching for "${search}"`;
+        const uri = formSearchUri();
+        this.id = `search`;
+        this.resourceUri = uri;
+        this.contextValue = 'search';
+        this.iconPath = new vscode.ThemeIcon("search");
     }
 }
