@@ -1,5 +1,4 @@
-import * as vscode from 'vscode';
-import axios from 'axios';
+import axios, { AxiosResponse, AxiosInstance } from 'axios';
 import * as config from './config';
 import * as models from './models';
 
@@ -9,6 +8,16 @@ export default class EscApi {
     private token: string | undefined;
     constructor(token: string | undefined = undefined) {
         this.token = token;
+    }
+
+    async listProviders(): Promise<string[]> {
+        const data = await this.get(`/api/esc/providers`, "Failed to list providers");
+        return data.providers;
+    }
+
+    async getProviderSchema(provider: string): Promise<models.ProviderSchema> {
+        const data = await this.get(`/api/esc/providers/${provider}/schema`, "Failed to get provider schema");
+        return data;
     }
 
     async getUserInfo(): Promise<models.User> {
@@ -166,7 +175,7 @@ export default class EscApi {
         }
     }
 
-    private async head(path: string, errorDescription: string): Promise<axios.AxiosResponse<any, any>> {
+    private async head(path: string, errorDescription: string): Promise<AxiosResponse<any, any>> {
         try {
             const request = await this.createRequest();
             const response = await request.head(path);
@@ -176,7 +185,7 @@ export default class EscApi {
         }
     }
 
-    async createRequest(): Promise<axios.AxiosInstance> {
+    async createRequest(): Promise<AxiosInstance> {
         let token = this.token;
         if (!token) {
             token = await config.authToken();

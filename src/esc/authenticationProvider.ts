@@ -38,7 +38,7 @@ export class PulumiAuthenticationProvider
           return;
         }
 
-        const sessions = JSON.parse(allSessions) 
+        const sessions = JSON.parse(allSessions);
         this.context.secrets.delete(SESSIONS_SECRET_KEY);
         this._sessionChangeEmitter.fire({
           added: [],

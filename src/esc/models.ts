@@ -29,50 +29,6 @@ export interface Tag {
 /**
  * 
  * @export
- * @interface Access
- */
-export interface Access {
-    /**
-     * 
-     * @type {Range}
-     * @memberof Access
-     */
-    'receiver'?: Range;
-    /**
-     * 
-     * @type {Array<Accessor>}
-     * @memberof Access
-     */
-    'accessors'?: Array<Accessor>;
-}
-/**
- * 
- * @export
- * @interface Accessor
- */
-export interface Accessor {
-    /**
-     * 
-     * @type {number}
-     * @memberof Accessor
-     */
-    'index'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof Accessor
-     */
-    'key': string;
-    /**
-     * 
-     * @type {Range}
-     * @memberof Accessor
-     */
-    'range': Range;
-}
-/**
- * 
- * @export
  * @interface CheckEnvironment
  */
 export interface CheckEnvironment {
@@ -218,98 +174,7 @@ export interface EnvironmentDiagnostics {
      */
     'diagnostics'?: Array<EnvironmentDiagnostic>;
 }
-/**
- * 
- * @export
- * @interface EvaluatedExecutionContext
- */
-export interface EvaluatedExecutionContext {
-    /**
-     * 
-     * @type {{ [key: string]: Value; }}
-     * @memberof EvaluatedExecutionContext
-     */
-    'properties'?: { [key: string]: Value; };
-    /**
-     * 
-     * @type {any}
-     * @memberof EvaluatedExecutionContext
-     */
-    'schema'?: any;
-}
-/**
- * 
- * @export
- * @interface Expr
- */
-export interface Expr {
-    /**
-     * 
-     * @type {Range}
-     * @memberof Expr
-     */
-    'range'?: Range;
-    /**
-     * 
-     * @type {Expr}
-     * @memberof Expr
-     */
-    'base'?: Expr;
-    /**
-     * 
-     * @type {any}
-     * @memberof Expr
-     */
-    'schema'?: any;
-    /**
-     * 
-     * @type {{ [key: string]: Range; }}
-     * @memberof Expr
-     */
-    'keyRanges'?: { [key: string]: Range; };
-    /**
-     * 
-     * @type {any}
-     * @memberof Expr
-     */
-    'literal'?: any;
-    /**
-     * 
-     * @type {Array<Interpolation>}
-     * @memberof Expr
-     */
-    'interpolate'?: Array<Interpolation>;
-    /**
-     * 
-     * @type {Array<PropertyAccessor>}
-     * @memberof Expr
-     */
-    'symbol'?: Array<PropertyAccessor>;
-    /**
-     * 
-     * @type {Array<Access>}
-     * @memberof Expr
-     */
-    'access'?: Array<Access>;
-    /**
-     * 
-     * @type {Array<Expr>}
-     * @memberof Expr
-     */
-    'list'?: Array<Expr>;
-    /**
-     * 
-     * @type {{ [key: string]: Expr; }}
-     * @memberof Expr
-     */
-    'object'?: { [key: string]: Expr; };
-    /**
-     * 
-     * @type {ExprBuiltin}
-     * @memberof Expr
-     */
-    'builtin'?: ExprBuiltin;
-}
+
 /**
  * 
  * @export
@@ -341,25 +206,7 @@ export interface ExprBuiltin {
      */
     'arg'?: Expr;
 }
-/**
- * 
- * @export
- * @interface Interpolation
- */
-export interface Interpolation {
-    /**
-     * 
-     * @type {string}
-     * @memberof Interpolation
-     */
-    'text': string;
-    /**
-     * 
-     * @type {Array<PropertyAccessor>}
-     * @memberof Interpolation
-     */
-    'value'?: Array<PropertyAccessor>;
-}
+
 /**
  * 
  * @export
@@ -491,122 +338,184 @@ export interface Pos {
      */
     'byte': number;
 }
-/**
- * 
- * @export
- * @interface PropertyAccessor
- */
-export interface PropertyAccessor {
-    /**
-     * 
-     * @type {number}
-     * @memberof PropertyAccessor
-     */
-    'index'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof PropertyAccessor
-     */
-    'key': string;
-    /**
-     * 
-     * @type {Range}
-     * @memberof PropertyAccessor
-     */
-    'range': Range;
-    /**
-     * 
-     * @type {Range}
-     * @memberof PropertyAccessor
-     */
-    'value'?: Range;
+
+export interface ProviderSchema {
+    name: string;
+    description: string;
+    inputs?: any;
+    outputs?: any;
 }
-/**
- * 
- * @export
- * @interface Range
- */
-export interface Range {
-    /**
-     * 
-     * @type {string}
-     * @memberof Range
-     */
-    'environment': string;
-    /**
-     * 
-     * @type {Pos}
-     * @memberof Range
-     */
-    'begin': Pos;
-    /**
-     * 
-     * @type {Pos}
-     * @memberof Range
-     */
-    'end': Pos;
-}
-/**
- * 
- * @export
- * @interface Reference
- */
-export interface Reference {
-    /**
-     * 
-     * @type {string}
-     * @memberof Reference
-     */
-    '$ref': string;
-}
-/**
- * 
- * @export
- * @interface Trace
- */
-export interface Trace {
-    /**
-     * 
-     * @type {Range}
-     * @memberof Trace
-     */
-    'def'?: Range;
-    /**
-     * 
-     * @type {Value}
-     * @memberof Trace
-     */
-    'base'?: Value;
-}
-/**
- * 
- * @export
- * @interface Value
- */
+
+// Copyright 2016-2024, Pulumi Corporation. All rights reserved.
+
+// A Value is the result of evaluating an expression within an environment definition.
 export interface Value {
-    /**
-     * 
-     * @type {any}
-     * @memberof Value
-     */
-    'value': any;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof Value
-     */
-    'secret'?: boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof Value
-     */
-    'unknown'?: boolean;
-    /**
-     * 
-     * @type {Trace}
-     * @memberof Value
-     */
-    'trace': Trace;
+    value: ValueRepr;
+    secret?: boolean;
+    unknown?: boolean;
+    trace?: Trace;
+}
+
+// ValueRepr describes the possible values in a Value.
+export type ValueRepr = undefined | null | boolean | string | number | Value[] | Record<string, Value>;
+
+// A Trace holds information about the expression and base of a value.
+export interface Trace {
+    def: Range;
+    base: Value;
+}
+
+// A Range defines a range within an environment definition.
+export interface Range {
+    environment: string;
+    begin: Position;
+    end: Position;
+}
+
+// A Position defines a position within an environment definition.
+export interface Position {
+    line: number;
+    column: number;
+    byte: number;
+}
+
+export interface Diagnostic {
+    range?: Range;
+    summary?: string;
+    path?: string;
+}
+
+export interface EvaluatedExecutionContext {
+    properties?: Record<string, Value>;
+    schema?: object; // TODO: add a type for schema rather than a raw object.
+}
+
+export interface BaseExpr {
+    range: Range;
+    base?: Expr;
+}
+
+// An Expr holds information about an expression in an environment definition.
+export type Expr = LiteralExpr | InterpolateExpr | SymbolExpr | AccessExpr | ListExpr | ObjectExpr | BuiltinExpr;
+
+export interface LiteralExpr extends BaseExpr {
+    // The literal value.
+    literal: null | boolean | number | string;
+}
+
+export interface InterpolateExpr extends BaseExpr {
+    // The interpolation.
+    interpolate: Interpolation[];
+}
+
+export interface SymbolExpr extends BaseExpr {
+    // The accessors for the accessed symbol.
+    symbol: PropertyAccessor[];
+}
+
+export interface AccessExpr extends BaseExpr {
+    // The property being accessed and the access's receiver.
+    access: Access;
+}
+
+export interface ListExpr extends BaseExpr {
+    // The list elements
+    list: Expr[];
+}
+
+export interface ObjectExpr extends BaseExpr {
+    // Ranges for the object's keys.
+    keyRanges: Record<string, Range>;
+
+    // The object's properties.
+    object: Record<string, Expr>;
+}
+
+export interface BuiltinExpr extends BaseExpr {
+    // The builtin being called.
+    builtin: Builtin;
+}
+
+export function isLiteral(x: Expr): x is LiteralExpr {
+    return "literal" in x;
+}
+
+export function isInterpolate(x: Expr): x is InterpolateExpr {
+    return "interpolate" in x;
+}
+
+export function isSymbol(x: Expr): x is SymbolExpr {
+    return "symbol" in x;
+}
+
+export function isAccess(x: Expr): x is AccessExpr {
+    return "access" in x;
+}
+
+export function isList(x: Expr): x is ListExpr {
+    return "list" in x;
+}
+
+export function isObject(x: Expr): x is ObjectExpr {
+    return "object" in x;
+}
+
+export function isBuiltin(x: Expr): x is BuiltinExpr {
+    return "builtin" in x;
+}
+
+export function isIndex(x: Accessor): x is IndexAccessor {
+    return "index" in x;
+}
+
+export function isKey(x: Accessor): x is KeyAccessor {
+    return "key" in x;
+}
+
+// An Interpolation holds information about a part of an interpolated string expression.
+export interface Interpolation {
+    // The text of the expression. Precedes the stringified Value in the output.
+    text: string;
+
+    // The value to interpolate.
+    value: PropertyAccessor[];
+}
+
+// An Accessor is an element index or property name.
+export type Accessor = IndexAccessor | KeyAccessor;
+
+export interface IndexAccessor {
+    // The integer index of the element to access.
+    index: number;
+}
+
+export interface KeyAccessor {
+    // The key of the property to access.
+    key: string;
+}
+
+// A PropertyAccessor is a single accessor that is associated with a resolved value.
+export type PropertyAccessor = Accessor & {
+    // The range of the expression that defines the resolved value.
+    value: Range;
+
+    // The range of the accessor.
+    range: Range;
+};
+
+// An Access represents a property access with a receiving value.
+export interface Access {
+    // The receiver to access.
+    receiver: Range;
+
+    // The accessors to evaluate.
+    accessors: Accessor[];
+}
+
+// A Builtin is a call to a builtin function.
+export interface Builtin {
+    name: string;
+    nameRange: Range;
+    arg: Expr;
+    argSchema: object;
 }
