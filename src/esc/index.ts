@@ -5,6 +5,7 @@ import * as commands from './commands';
 import EscApi from './api';
 import { EscDiagnostics } from './escDiagnostics';
 import { PulumiAuthenticationProvider } from './authenticationProvider';
+import { FunctionSchemas } from './language_service/functions';
 
 
 export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
@@ -35,8 +36,11 @@ export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
     const searchCmd = commands.searchCommand(searchTreeProvider);
     const runCmd = commands.runCommand();
     
-    const diagnostics = new EscDiagnostics(api);
+    const functions = new FunctionSchemas(api);
+    const diagnostics = new EscDiagnostics(api, functions);
     diagnostics.subscribeToDocumentChanges(context);
+    diagnostics.registerCompletionItemProvider(context);
+    diagnostics.registerHoverProvider(context);
     
     const trackActiveEnv = vscode.window.onDidChangeActiveTextEditor(trackEnvironmentEditorSelection(escTreeProvider, treeView));
     const sessionChanged = vscode.authentication.onDidChangeSessions(handleAuthSessionChange);
