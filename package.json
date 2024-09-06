@@ -33,7 +33,8 @@
         "id": "pulumi"
       }
     ],
-    "configuration": [{
+    "configuration": [
+      {
         "title": "Pulumi Cloud",
         "properties": {
           "pulumi.api-url": {
@@ -100,24 +101,25 @@
         "icon": "$(references)"
       },
       {
-				"command": "pulumi.esc.selectForCompare",
-				"title": "Select for compare"
-			},
-			{
-				"command": "pulumi.esc.compareWithSelected",
-				"title": "Compare With Selected"
-			},
-			{
-				"command": "pulumi.esc.tagRevision",
-				"title": "Tag",
+        "command": "pulumi.esc.selectForCompare",
+        "title": "Select for compare"
+      },
+      {
+        "command": "pulumi.esc.compareWithSelected",
+        "title": "Compare With Selected"
+      },
+      {
+        "command": "pulumi.esc.tagRevision",
+        "title": "Tag",
         "icon": "$(tag)"
-			}
-
+      }
     ],
     "languages": [
       {
         "id": "pulumi-esc",
-        "extensions": [".esc"],
+        "extensions": [
+          ".esc"
+        ],
         "configuration": "./esc-language-configuration.json"
       }
     ],
@@ -175,12 +177,11 @@
         }
       ],
       "view/title": [
-        
         {
           "command": "pulumi.esc.refresh",
           "when": "view == pulumi-esc-explorer",
           "group": "navigation"
-        },        
+        },
         {
           "command": "pulumi.esc.search",
           "when": "view == pulumi-esc-explorer",
@@ -214,18 +215,18 @@
           "group": "inline"
         },
         {
-					"command": "pulumi.esc.tagRevision",
-					"when": "view == pulumi-esc-explorer && viewItem == revision",
+          "command": "pulumi.esc.tagRevision",
+          "when": "view == pulumi-esc-explorer && viewItem == revision",
           "group": "inline"
-				},
+        },
         {
-					"command": "pulumi.esc.selectForCompare",
-					"when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision)"
-				},
-				{
-					"command": "pulumi.esc.compareWithSelected",
-					"when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision) && pulumi.esc.compareEnabled"
-				}
+          "command": "pulumi.esc.selectForCompare",
+          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision)"
+        },
+        {
+          "command": "pulumi.esc.compareWithSelected",
+          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision) && pulumi.esc.compareEnabled"
+        }
       ]
     },
     "keybindings": [
@@ -234,7 +235,6 @@
         "key": "ctrl+r",
         "mac": "cmd+r"
       }
-      
     ],
     "viewsContainers": {
       "activitybar": [
@@ -363,6 +363,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/mocha": "^10.0.3",
     "@types/node": "18.x",
     "@types/vscode": "^1.84.0",
