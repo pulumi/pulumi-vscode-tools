@@ -5,6 +5,11 @@ export function formEnvUri(org: string, project:string, name: string, suffix: st
     return vscode.Uri.parse(`${PulumiScheme}://env/${org}/${project}/${name}${suffix}`);
 }
 
+export function formEnvUriFromImportRef(org: string, ref: string): vscode.Uri {
+    ref = ref.replace("@", "/rev/");
+    return vscode.Uri.parse(`${PulumiScheme}://env/${org}/${ref}`);
+}
+
 export function formOrgUri(org: string): vscode.Uri {
     return vscode.Uri.parse(`${PulumiScheme}://org/${org}`);
 }
