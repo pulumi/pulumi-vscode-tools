@@ -497,9 +497,9 @@ function interpolateSuggestions(
     offset: number,
 ): CompletionItem[] {
     for (const part of expr.interpolate) {
-        const suggestions = accessSuggestions(schemaPath, part.value, schema, offset) || [];
+        let suggestions = accessSuggestions(schemaPath, part.value, schema, offset) || [];
         const contextSuggestion = accessSuggestions(schemaPath, part.value, contextSchema, offset) || [];
-        suggestions.concat(...contextSuggestion);
+        suggestions = suggestions.concat(...contextSuggestion);
         if (suggestions.length > 0) {
             return suggestions;
         }

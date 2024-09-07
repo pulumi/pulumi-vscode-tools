@@ -9,6 +9,7 @@ import * as yaml from "./language_service/yaml-document";
 import * as completion from "./language_service/completion-items";
 import { FunctionSchemas } from './language_service/functions';
 import * as hover from './language_service/hover';
+import * as definition from './language_service/go-to-definition';
 
 interface Analysis {
     // The source code that was analyzed.
@@ -34,6 +35,16 @@ export class EscDiagnostics {
         this.getAnalysis = this.debounce(this.refreshDiagnostics.bind(this));
     }
 
+    public async provideDefinition(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location | undefined> {
+        const yamlDoc = await this.getYamlDoc(document);
+        if (yamlDoc === undefined) {
+            return undefined;
+        }
+
+        const { exprs, properties } = this.analysis!.checkEnv!;
+        return definition.provideDefinitionLocation(document, yamlDoc, exprs, properties, position);
+    }
+    
     public async provideHover(document: vscode.TextDocument, position: vscode.Position, cancellationToken: vscode.CancellationToken): Promise<vscode.Hover> {
         const yamlDoc = await this.getYamlDoc(document);
         if (yamlDoc === undefined) {
@@ -134,6 +145,12 @@ export class EscDiagnostics {
     public registerHoverProvider(ctx: vscode.ExtensionContext): void {
         ctx.subscriptions.push(
             vscode.languages.registerHoverProvider('pulumi-esc', this)
+        );
+    }
+
+    public registerDefinitionProvider(ctx: vscode.ExtensionContext): void {
+        ctx.subscriptions.push(
+            vscode.languages.registerDefinitionProvider('pulumi-esc', this)
         );
     }
 
