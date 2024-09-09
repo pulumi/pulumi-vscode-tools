@@ -2,19 +2,20 @@
   "name": "pulumi-vscode-tools",
   "displayName": "Pulumi Tools",
   "description": "Pulumi Visual Studio Code Tools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.84.0"
   },
-  "repository": { 
-    "type": "git", 
-    "url": "https://github.com/pulumi/pulumi-vscode-tools.git" 
+  "publisher": "Pulumi",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pulumi/pulumi-vscode-tools.git"
   },
   "categories": [
-    "Other"
+    "Debuggers"
   ],
   "extensionDependencies": [
-    "pulumi.pulumi-lsp-client"
   ],
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
@@ -43,10 +44,9 @@
               "command": {
                 "enum": [
                   "up",
-                  "preview",
-                  "destroy"
+                  "preview"
                 ],
-                "description": "Deployment command (up, preview, destroy, cancel).",
+                "description": "Deployment command (up, preview).",
                 "default": "preview"
               },
               "stackName": {
@@ -76,11 +76,10 @@
             }
           }
         },
-        "initialConfigurations": [   
-        ],
+        "initialConfigurations": [],
         "configurationSnippets": [
           {
-            "label": "Pulumi: preview",
+            "label": "pulumi preview",
             "description": "Show a preview of updates to a stack's resources",
             "body": {
               "type": "pulumi",
@@ -93,26 +92,13 @@
             }
           },
           {
-            "label": "Pulumi: up",
+            "label": "pulumi up",
             "description": "Create or update the resources in a stack",
             "body": {
               "type": "pulumi",
               "request": "launch",
               "name": "pulumi up",
               "command": "up",
-              "workDir": "^\"\\${workspaceFolder}\"",
-              "stackName": "dev",
-              "stopOnEntry": true
-            }
-          },
-          {
-            "label": "Pulumi: destroy",
-            "description": "Destroy all existing resources in the stack",
-            "body": {
-              "type": "pulumi",
-              "request": "launch",
-              "name": "pulumi destroy",
-              "command": "destroy",
               "workDir": "^\"\\${workspaceFolder}\"",
               "stackName": "dev",
               "stopOnEntry": true
@@ -136,7 +122,6 @@
     "@types/vscode": "^1.84.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
-    "@vscode/debugadapter": "^1.64.0",
     "@vscode/debugadapter-testsupport": "^1.64.0",
     "@vscode/test-electron": "^2.3.6",
     "await-notify": "^1.0.1",
@@ -146,6 +131,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@pulumi/pulumi": "^3.93.0"
+    "@pulumi/pulumi": "dev",
+    "@vscode/debugadapter": "^1.64.0"
   }
 }

@@ -58,7 +58,7 @@ The following properties are supported:
 |---|---|---|---|
 | `type` | string | Use `pulumi`. |  |
 | `request` | string | Use `launch`. |  |
-| `command` | string | Deployment command (up, preview, destroy). |  |
+| `command` | string | Deployment command (up, preview). |  |
 | `stackName` | string | The name of the stack to operate on. Defaults to the ~current stack~ stack named `dev`. |  |
 | `workDir` | string | Run Pulumi as if it had been started in another directory. |  |
 | `env` | object | Environment variables for the Pulumi CLI. |  |

@@ -72,15 +72,6 @@ class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationPro
 					"workDir": "${workspaceFolder}",
 					"stackName": "dev",
 					"stopOnEntry": true
-				},
-				{
-					"type": "pulumi",
-					"request": "launch",
-					"name": "pulumi destroy -s dev",
-					"command": "destroy",
-					"workDir": "${workspaceFolder}",
-					"stackName": "dev",
-					"stopOnEntry": true
 				}
 			];
 		});

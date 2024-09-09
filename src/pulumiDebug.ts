@@ -29,7 +29,7 @@ import { EngineEvent, LocalProgramArgs, LocalWorkspace } from "@pulumi/pulumi/au
  * The interface should always match this schema.
  */
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-	/** Deployment command (up, preview, destroy). */
+	/** Deployment command (up, preview). */
 	command: string;
 	/** The name of the stack to operate on. Defaults to the current stack */
 	stackName: string;
@@ -152,8 +152,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 		// create (or select if one already exists) a stack that uses our local program
 		const stack = await LocalWorkspace.createOrSelectStack(programArgs, {
 			envVars: {
-				...args.env,
-				...!args.noDebug && {"PULUMI_ENABLE_DEBUGGING": "true"}
+				...args.env
 			},
 		});
 
@@ -164,6 +163,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
+					attachDebugger: !args.noDebug,
 					// signal: this._abortController.signal,
 				});
 				console.info(`up result: ${JSON.stringify(upResult)}`);
@@ -174,20 +174,14 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
+					attachDebugger: !args.noDebug,
 					// signal: this._abortController.signal,
 				});
 				console.info(`preview result: ${JSON.stringify(previewResult)}`);
 				break;
 
-			case "destroy":
-				const destroyResult = await stack.destroy({ 
-					onOutput: this.onOutput.bind(this),
-					onEvent: this.onEngineEvent.bind(this), 
-					color: "never",
-					// signal: this._abortController.signal,
-				});
-				console.info(`up result: ${JSON.stringify(destroyResult)}`);
-				break;
+			default:
+				console.error(`unsupported command: ${args.command}`);
 		}
 	}
 
