@@ -10,6 +10,25 @@ export default class EscApi {
         this.token = token;
     }
 
+    async listAllReferrers(org: string, project: string, envName: string, version?: string): Promise<models.EnvironmentImportReferrer[]> {
+        let nextToken : string | undefined = undefined;
+        version = version || "latest";
+        const referrers: models.EnvironmentImportReferrer[] = [];
+        do {
+            let url = `/api/esc/environments/${org}/${project}/${envName}/versions/${version}/referrers`;
+            if (nextToken !== undefined) {
+                url = `${url}?continuationToken=${nextToken}`;
+            }
+            const data = await this.get(url, "Failed to list referrers");
+            const imports = data.referrers.filter(ref => ref.environment !== undefined).map(ref => ref.environment);
+            referrers.push(...imports);
+
+            nextToken = data.nextToken;
+        } while (nextToken !== undefined);
+
+        return referrers;
+    }
+
     async listProviders(): Promise<string[]> {
         const data = await this.get(`/api/esc/providers`, "Failed to list providers");
         return data.providers;
@@ -29,7 +48,11 @@ export default class EscApi {
         let nextToken : string | undefined = undefined;
         const environments: models.OrgEnvironment[] = [];
         do {
-            const data = await this.get(`/api/esc/environments/${org}`, "Failed to list environments");
+            let url = `/api/esc/environments/${org}`;
+            if (nextToken !== undefined) {
+                url = `${url}?continuationToken=${nextToken}`;
+            }
+            const data = await this.get(url, "Failed to list environments");
             environments.push(...data.environments);
 
             nextToken = data.nextToken;
@@ -95,7 +118,24 @@ export default class EscApi {
         return data;
     }
 
-    async checkEnvironment(org: string, definition: string): Promise<models.CheckEnvironment> {
+    async checkEnvironment(org: string, project: string, envName: string, version?: string): Promise<models.CheckEnvironment> {
+        try {
+            version = version || "latest";
+            const url = `/api/esc/environments/${org}/${project}/${envName}/versions/${version}/check`;
+            const response = await this.post(url, "", "Failed to check environment");
+            return response;
+        } catch (err: any) {
+            if (err instanceof axios.AxiosError) {
+                if (err.response?.status === 400) {
+                    return err.response.data;
+                }
+            }
+
+            throw new Error("Failed to check environment");
+        }
+    }
+
+    async checkEnvironmentYaml(org: string, definition: string): Promise<models.CheckEnvironment> {
         try {
             const request = await this.createRequest();
             const response = await request.post(`/api/esc/environments/${org}/yaml/check`, definition);

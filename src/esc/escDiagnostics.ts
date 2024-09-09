@@ -10,6 +10,8 @@ import * as completion from "./language_service/completion-items";
 import { FunctionSchemas } from './language_service/functions';
 import * as hover from './language_service/hover';
 import * as definition from './language_service/go-to-definition';
+import * as references from './language_service/references';
+import { EnvRef } from './language_service/references';
 
 interface Analysis {
     // The source code that was analyzed.
@@ -30,6 +32,8 @@ export class EscDiagnostics {
     private getAnalysis: () => Promise<void>;
     private analysis: Analysis | undefined;
     private document: vscode.TextDocument | undefined;
+    private envRefs = new Map<EnvRef, EnvRef[]>();
+    private envChecks = new Map<EnvRef, CheckEnvironment>();
     constructor(private api: EscApi, private functions: FunctionSchemas) {
         this.diagCollection = vscode.languages.createDiagnosticCollection('esc');
         this.getAnalysis = this.debounce(this.refreshDiagnostics.bind(this));
@@ -42,7 +46,18 @@ export class EscDiagnostics {
         }
 
         const { exprs, properties } = this.analysis!.checkEnv!;
-        return definition.provideDefinitionLocation(document, yamlDoc, exprs, properties, position);
+        return definition.provideDefinitionLocation(document, yamlDoc, exprs, position);
+    }
+
+    public async provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, cancellationToken: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
+        const yamlDoc = await this.getYamlDoc(document);
+        if (yamlDoc === undefined) {
+            return undefined;
+        }
+
+        const refs = await references.provideReferences(
+            this.envRefs, this.envChecks, this.api, yamlDoc, document, this.analysis?.checkEnv?.exprs, position, context, cancellationToken);
+        return refs;
     }
     
     public async provideHover(document: vscode.TextDocument, position: vscode.Position, cancellationToken: vscode.CancellationToken): Promise<vscode.Hover> {
@@ -154,6 +169,12 @@ export class EscDiagnostics {
         );
     }
 
+    public registerReferencesProvider(ctx: vscode.ExtensionContext): void {
+        ctx.subscriptions.push(
+            vscode.languages.registerReferenceProvider('pulumi-esc', this)
+        );
+    }
+
     debounce (func: () => Promise<void>): () => Promise<void> {
         let timeout: NodeJS.Timeout | undefined;
         return function () {
@@ -180,7 +201,7 @@ export class EscDiagnostics {
         if (!yamlDoc.value) {
             return;
         }
-        this.checkEnvironment = await this.api.checkEnvironment(org, definition);
+        this.checkEnvironment = await this.api.checkEnvironmentYaml(org, definition);
         const diagnostics = this.checkEnvironment.diagnostics;
         this.extractAnalysis(this.document, definition, yamlDoc);
         
