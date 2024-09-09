@@ -42,6 +42,7 @@ export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
     diagnostics.registerCompletionItemProvider(context);
     diagnostics.registerHoverProvider(context);
     diagnostics.registerDefinitionProvider(context);
+    diagnostics.registerReferencesProvider(context);
     
     const trackActiveEnv = vscode.window.onDidChangeActiveTextEditor(trackEnvironmentEditorSelection(escTreeProvider, treeView));
     const sessionChanged = vscode.authentication.onDidChangeSessions(handleAuthSessionChange);

@@ -30,6 +30,9 @@ export function parseOrgUri(uri: vscode.Uri): string {
 
 export function parseRevision(uri: vscode.Uri): string {
     const parts = uri.path.split("rev/");
+    if (parts.length !== 2) {
+        return "latest";
+    }
     return parts[1];
 }
 

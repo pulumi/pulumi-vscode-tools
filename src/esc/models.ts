@@ -339,6 +339,30 @@ export interface Pos {
     'byte': number;
 }
 
+export interface EnvironmentImportReferrer {
+	'project': string;
+	'name': string;
+	'revision': number;
+}
+
+// An EnvironmentStackReferrer represents a reference from an IaC stack.
+export interface EnvironmentStackReferrer {
+	'projectName': string;
+	'stackName': string;
+	'version': number;
+}
+
+// An EnvironmentReferrer represents an entity that refers to an environment.
+export interface EnvironmentReferrer {
+	'environment': EnvironmentImportReferrer;
+	'stack': EnvironmentStackReferrer;
+}
+
+export interface ListEnvironmentReferrersResponse {
+	'referrers': EnvironmentReferrer[];
+	'continuationToken': string;
+}
+
 export interface ProviderSchema {
     name: string;
     description: string;
