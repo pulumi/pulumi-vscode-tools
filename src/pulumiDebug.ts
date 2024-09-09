@@ -164,7 +164,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
-					signal: this._abortController.signal,
+					// signal: this._abortController.signal,
 				});
 				console.info(`up result: ${JSON.stringify(upResult)}`);
 				break;
@@ -174,7 +174,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
-					signal: this._abortController.signal,
+					// signal: this._abortController.signal,
 				});
 				console.info(`preview result: ${JSON.stringify(previewResult)}`);
 				break;
@@ -184,7 +184,7 @@ export class PulumiDebugSession extends LoggingDebugSession {
 					onOutput: this.onOutput.bind(this),
 					onEvent: this.onEngineEvent.bind(this), 
 					color: "never",
-					signal: this._abortController.signal,
+					// signal: this._abortController.signal,
 				});
 				console.info(`up result: ${JSON.stringify(destroyResult)}`);
 				break;
