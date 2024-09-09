@@ -9,7 +9,9 @@ Features include:
 - Launch your program under a debugger.
 - IntelliSense and linting for Pulumi YAML.
 - Automatically generate a launch configuration for a Pulumi project.
-  
+
+[demo](https://github.com/pulumi/pulumi-vscode-tools/assets/1775518/6947a1de-0449-49b5-bf5f-8b3e0edd676c)
+
 ## Getting Started
 
 _Note_: This is prerelease software requiring a special build of Pulumi, see https://github.com/pulumi/pulumi/pull/14516.
