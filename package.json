@@ -2,7 +2,7 @@
   "name": "pulumi-vscode-tools",
   "displayName": "Pulumi Tools",
   "description": "Pulumi Visual Studio Code Tools",
-  "version": "0.0.0",
+  "version": "0.1.0-beta.0",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -15,8 +15,7 @@
   "categories": [
     "Debuggers"
   ],
-  "extensionDependencies": [
-  ],
+  "extensionDependencies": [],
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
     "onDebugInitialConfigurations:pulumi",
@@ -25,22 +24,21 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": [
-			{
-				"id": "pulumi",
-				"title": "Pulumi Tools",
-				"order": 2,
-				"properties": {
+      {
+        "id": "pulumi",
+        "title": "Pulumi Tools",
+        "order": 2,
+        "properties": {
           "pulumi.env": {
             "type": "object",
-						"order": 2,
-						"markdownDescription": "Object with environment variables that will be added to the Pulumi CLI ([reference](https://www.pulumi.com/docs/cli/environment-variables/)).",
-						"additionalProperties": true
+            "order": 2,
+            "markdownDescription": "Object with environment variables that will be added to the Pulumi CLI ([reference](https://www.pulumi.com/docs/cli/environment-variables/)).",
+            "additionalProperties": true
           }
-				}
-			}
-		],
-    "commands": [
+        }
+      }
     ],
+    "commands": [],
     "debuggers": [
       {
         "type": "pulumi",
