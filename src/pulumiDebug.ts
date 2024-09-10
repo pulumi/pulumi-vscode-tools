@@ -20,7 +20,8 @@ import {
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { Subject } from 'await-notify';
-import { EngineEvent, LocalProgramArgs, LocalWorkspace } from "@pulumi/pulumi/automation";
+import { EngineEvent, Stack } from "@pulumi/pulumi/automation";
+import { createWorkspace } from './configuration';
 
 /**
  * This interface describes the pulumi-debug specific launch attributes
@@ -144,17 +145,14 @@ export class PulumiDebugSession extends LoggingDebugSession {
 		await this._configurationDone.wait();
 
 		// Create our stack using a local program
-		const programArgs: LocalProgramArgs = {
-			stackName: args.stackName,
-			workDir: args.workDir,
-		};
-		
-		// create (or select if one already exists) a stack that uses our local program
-		const stack = await LocalWorkspace.createOrSelectStack(programArgs, {
+		const ws = await createWorkspace(args.workDir, {
 			envVars: {
 				...args.env
 			},
 		});
+
+		// create (or select if one already exists) a stack that uses our local program
+		const stack = await Stack.createOrSelect(args.stackName, ws);
 
 		// start the program
 		switch (args.command) {

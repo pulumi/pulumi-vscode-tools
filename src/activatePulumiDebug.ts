@@ -10,7 +10,7 @@
 import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { FileAccessor, PulumiDebugSession } from './pulumiDebug';
-import { LocalWorkspace } from "@pulumi/pulumi/automation";
+import { createWorkspace } from './configuration';
 
 const NEW_STACK_TEXT = 'Create a new stack...';
 
@@ -27,22 +27,14 @@ export function activatePulumiDebug(context: vscode.ExtensionContext) {
 
 async function pickStack(workspaceFolder: string): Promise<string | undefined> {
 	// create (or select if one already exists) a stack that uses our local program
-	const ws = await LocalWorkspace.create({
-		workDir: workspaceFolder,
-	});
-
-	// use the current stack if there is one
-	// const current = await ws.stack();
-	// if (current) {
-	// 	return current.name;
-	// }
+	const ws = await createWorkspace(workspaceFolder);
 
 	// select or create a stack
 	const stacks = await ws.listStacks({});
 	const picks = stacks.map<vscode.QuickPickItem>(s => {
 		return {
 			label: s.name,
-			description: s.current ? `(current)` : ``,
+			description: s.current ? `current` : ``,
 			detail: s.url,
 		};
 	}).concat({label: '', kind: vscode.QuickPickItemKind.Separator}).concat({ label: NEW_STACK_TEXT });

@@ -24,6 +24,21 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": [
+			{
+				"id": "pulumi",
+				"title": "Pulumi Tools",
+				"order": 2,
+				"properties": {
+          "pulumi.env": {
+            "type": "object",
+						"order": 2,
+						"markdownDescription": "Object with environment variables that will be added to the Pulumi CLI ([reference](https://www.pulumi.com/docs/cli/environment-variables/)).",
+						"additionalProperties": true
+          }
+				}
+			}
+		],
     "commands": [
     ],
     "debuggers": [
