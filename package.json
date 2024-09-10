@@ -25,10 +25,6 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "pulumi-vscode-tools.helloWorld",
-        "title": "Hello World"
-      }
     ],
     "debuggers": [
       {
@@ -87,7 +83,6 @@
               "name": "pulumi preview",
               "command": "preview",
               "workDir": "^\"\\${workspaceFolder}\"",
-              "stackName": "dev",
               "stopOnEntry": true
             }
           },
@@ -100,7 +95,6 @@
               "name": "pulumi up",
               "command": "up",
               "workDir": "^\"\\${workspaceFolder}\"",
-              "stackName": "dev",
               "stopOnEntry": true
             }
           }
