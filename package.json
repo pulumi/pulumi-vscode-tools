@@ -72,11 +72,6 @@
                 "description": "Environment variables passed to the program.",
                 "default": {}
               },
-              "stopOnEntry": {
-                "type": "boolean",
-                "description": "Automatically stop after launch.",
-                "default": true
-              },
               "noDebug": {
                 "type": "boolean",
                 "description": "Run without debugging.",
@@ -95,8 +90,7 @@
               "request": "launch",
               "name": "pulumi preview",
               "command": "preview",
-              "workDir": "^\"\\${workspaceFolder}\"",
-              "stopOnEntry": true
+              "workDir": "^\"\\${workspaceFolder}\""
             }
           },
           {
@@ -107,8 +101,7 @@
               "request": "launch",
               "name": "pulumi up",
               "command": "up",
-              "workDir": "^\"\\${workspaceFolder}\"",
-              "stopOnEntry": true
+              "workDir": "^\"\\${workspaceFolder}\""
             }
           }
         ]

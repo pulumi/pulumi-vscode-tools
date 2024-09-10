@@ -38,8 +38,6 @@ interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	workDir: string;
 	/** environment variables */
 	env?: { [key: string]: string; };
-	/** Automatically stop target after launch. If not specified, target does not stop. */
-	stopOnEntry?: boolean;
 	/** run without debugging */
 	noDebug?: boolean;
 }

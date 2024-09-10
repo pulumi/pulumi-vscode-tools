@@ -62,7 +62,6 @@ The following properties are supported:
 | `stackName` | string | The name of the stack to operate on. If not specified, user is prompted to select a stack. |  |
 | `workDir` | string | Run Pulumi as if it had been started in another directory. |  |
 | `env` | object | Environment variables for the Pulumi CLI. |  |
-| `stopOnEntry` | boolean | Automatically stop the program to wait for the debugger to attach. |  |
 | `noDebug` | boolean | Run without debugging. |  |
 
 ### Run without Debugging
