@@ -2,11 +2,11 @@
   "name": "pulumi-vscode-tools",
   "displayName": "Pulumi Tools",
   "description": "Pulumi Visual Studio Code Tools",
-  "version": "0.0.2",
+  "version": "0.0.0",
   "engines": {
     "vscode": "^1.84.0"
   },
-  "publisher": "Pulumi",
+  "publisher": "pulumi",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

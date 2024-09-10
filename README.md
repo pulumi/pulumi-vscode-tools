@@ -14,11 +14,10 @@ Features include:
 
 ## Getting Started
 
-_Note_: This is prerelease software requiring a special build of Pulumi, see https://github.com/pulumi/pulumi/pull/14516.
 
 ### Install the software
 
-1. Install Pulumi using [these instructions](https://www.pulumi.com/docs/install/).
+1. Install Pulumi 3.132.0 (or greater) using [these instructions](https://www.pulumi.com/docs/install/).
 2. Install the [Pulumi Tools extension](https://marketplace.visualstudio.com/items?itemName=pulumi.pulumi-vscode-tools) using Visual Studio Marketplace.
 
 ### Open a Project
@@ -36,8 +35,9 @@ for the current Pulumi stack. To use an automatic debug configuration, do the fo
 
 1. Select the __Run and Debug__ icon.
 2. Choose __Show all automatic debug configurations__.
-3. Select "Pulumi..." then "Pulumi: preview" or "Pulumi: up".
+3. Select "Pulumi..." then "pulumi preview" or "pulumi up".
 4. Click the __Start Debugging__ icon on the selected configuration.
+5. Select or create a stack when prompted to do so.
 
 Alternatively, you can run your configuration through the Command Palette (⇧⌘P) by filtering on __Debug: Select and Start Debugging__.
 
@@ -49,8 +49,8 @@ To create a customized launch configuration, do one of the following:
 2. Create a launch.json file and use a configuration template.
 
 The extension provides the following configuration templates:
-- `Pulumi: up`
-- `Pulumi: preview`
+- `pulumi up`
+- `pulumi preview`
 
 The following properties are supported:
 
@@ -59,7 +59,7 @@ The following properties are supported:
 | `type` | string | Use `pulumi`. |  |
 | `request` | string | Use `launch`. |  |
 | `command` | string | Deployment command (up, preview). |  |
-| `stackName` | string | The name of the stack to operate on. Defaults to the ~current stack~ stack named `dev`. |  |
+| `stackName` | string | The name of the stack to operate on. If not specified, user is prompted to select a stack. |  |
 | `workDir` | string | Run Pulumi as if it had been started in another directory. |  |
 | `env` | object | Environment variables for the Pulumi CLI. |  |
 | `stopOnEntry` | boolean | Automatically stop the program to wait for the debugger to attach. |  |
