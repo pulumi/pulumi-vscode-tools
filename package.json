@@ -8,10 +8,15 @@
   },
   "publisher": "pulumi",
   "license": "Apache-2.0",
+  "icon": "pulumi-logo.png",
+  "bugs": {
+    "url": "https://github.com/pulumi/pulumi-vscode-tools/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/pulumi/pulumi-vscode-tools.git"
   },
+  "homepage": "https://github.com/pulumi/pulumi-vscode-tools/blob/main/README.md",
   "categories": [
     "Debuggers"
   ],
