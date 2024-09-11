@@ -29,6 +29,12 @@
         "title": "Pulumi Tools",
         "order": 2,
         "properties": {
+          "pulumi.root": {
+            "type": "string",
+            "order": 1,
+            "markdownDescription": "The local directory where the Pulumi CLI is installed. If not set, the extension will use the Pulumi CLI on the PATH.",
+            "scope": "machine"
+          },
           "pulumi.env": {
             "type": "object",
             "order": 2,
