@@ -8,7 +8,7 @@ import { PulumiAuthenticationProvider } from './authenticationProvider';
 import { FunctionSchemas } from './language_service/functions';
 
 
-export async function pulumiEscExplorer(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     const api = new EscApi();
     const escTreeProvider = new EnvironmentsTreeDataProvider(context, api);
     const escEnvironmentProvider = new EnvironmentFileSystemProvider(api);

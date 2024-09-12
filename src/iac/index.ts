@@ -14,7 +14,7 @@ import { createWorkspace } from './configuration';
 
 const NEW_STACK_TEXT = 'Create a new stack...';
 
-export function activatePulumiDebug(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 	// register configuration providers for 'pulumi' debug type
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', new PulumiConfigurationProvider()));
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', new PulumiDynamicConfigurationProvider(), 
