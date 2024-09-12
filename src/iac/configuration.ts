@@ -5,7 +5,7 @@ import { SemVer } from 'semver';
 import path from 'path';
 import * as os from "os";
 
-const minVersion: SemVer = new SemVer('v3.131.1-alpha.x86f5a4e');
+const minVersion: SemVer = new SemVer('v3.132.0');
 
 /**
  * Ensures that the Pulumi CLI is installed and has a compatible version.
