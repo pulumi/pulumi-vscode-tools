@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/pulumi/pulumi-vscode-tools/blob/main/README.md",
   "categories": [
-    "Debuggers"
+    "Debuggers",
+    "Other"
   ],
   "extensionDependencies": [],
   "activationEvents": [
