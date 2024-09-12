@@ -29,6 +29,14 @@ async function pickStack(workspaceFolder: string): Promise<string | undefined> {
 	// create (or select if one already exists) a stack that uses our local program
 	const ws = await createWorkspace(workspaceFolder);
 
+	const stackSelection = vscode.workspace.getConfiguration().get<string|undefined>('pulumi.debug.stackSelection');
+	if (stackSelection === 'automatic') {
+		const current = await ws.stack();
+		if (current) {
+			return current.name;
+		}
+	}
+
 	// select or create a stack
 	const stacks = await ws.listStacks({});
 	const picks = stacks.map<vscode.QuickPickItem>(s => {
