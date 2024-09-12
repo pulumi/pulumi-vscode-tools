@@ -8,3 +8,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Initial release
 - Add ESC Explorer feature
+- Add IaC Debugging feature

@@ -7,18 +7,19 @@ _Note_: This extension is in a public beta. If you have suggestions for features
 Features include:
 - Run your Pulumi program from within Visual Studio Code.
 - Launch your program under a debugger.
-- IntelliSense and linting for Pulumi YAML.
 - Automatically generate a launch configuration for a Pulumi project.
-
-[demo](https://github.com/pulumi/pulumi-vscode-tools/assets/1775518/6947a1de-0449-49b5-bf5f-8b3e0edd676c)
+- Explorer for Pulumi ESC (Environments, Secrets, and Configuration).
 
 ## Getting Started
 
-
 ### Install the software
 
-1. Install Pulumi 3.132.0 (or greater) using [these instructions](https://www.pulumi.com/docs/install/).
+1. Install Pulumi 3.132.0 (or greater) using [these instructions](https://www.pulumi.com/docs/install/), and restart VS Code.
 2. Install the [Pulumi Tools extension](https://marketplace.visualstudio.com/items?itemName=pulumi.pulumi-vscode-tools) using Visual Studio Marketplace.
+
+## Using Pulumi IaC
+
+This extension allows you to launch and debug Pulumi programs within VS Code.
 
 ### Open a Project
 
@@ -70,7 +71,58 @@ To run without debugging, do one of the following:
 1. With a launch configuration selected, select __Run Without Debugging__ on the Run menu.
 2. Add `"noDebug": "true"` property to your launch configuration.
 
-## Extension Settings
+## Using Pulumi ESC
+
+This extension allows you to manage ESC environments without leaving VS Code.
+
+### Open the ESC Explorer
+
+From the primary sidebar, open the "Pulumi ESC Explorer" view, and click "login" to authenticate to Pulumi Cloud.
+
+Once logged in, you should see a tree of your organizations and, within each organization, your ESC environments.
+
+### Create or Edit an Environment
+
+Click the plus sign on an organization node to create an environment.
+By clicking on an environment in the tree or creating a new environment, the extension will open an editor.
+Edit the environment definition and save to create a new revision.
+
+### Open an Environment
+
+On the right side of the editor, click the Preview button to open the environment. You will be prompted for an output format.
+
+### Delete an Environment
+
+If you hover over an environment, there is a icon that will delete the environment; you will be asked to enter the environment name to confirm.
+
+### Decrypt an Environment
+
+If you hover over an environment, there is a icon that will decrypt the environment without opening it. This is useful in a clone/move scenario.
+
+### Refresh Environments
+
+If you get out of date, you can always refresh using the icon at the top right of the Pulumi ESC Explorer tree view. 
+The extension auto refreshes only after a change.
+
+### Search Environments
+
+Click the search icon in the top right, type in a search term, and see results in the pane that appears.
+
+### Tag a Revision
+
+Click the tag icon on a revision and give it a name.
+
+### Diff/Compare Environments and Revisions
+
+You can compare anything, two revisions, or two environments, or any combination.
+
+Right or Control-click the first node to compare in the tree and click Select for compare.
+
+Then right or control-click on another node and select Compare with Selected
+
+### Logout
+
+Go to the Account icon at the bottom left, select your Pulumi Cloud account, and sign out.
 
 ## Releases
 
