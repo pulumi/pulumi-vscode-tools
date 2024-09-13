@@ -22,6 +22,9 @@
     "Other"
   ],
   "extensionDependencies": [],
+  "extensionPack": [
+    "pulumi.pulumi-lsp-client"
+  ],
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
     "onDebugInitialConfigurations:pulumi",
