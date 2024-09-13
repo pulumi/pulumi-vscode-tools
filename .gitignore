@@ -5,3 +5,4 @@ node_modules
 *.vsix
 .yalc/
 yalc.lock
+.DS_Store
