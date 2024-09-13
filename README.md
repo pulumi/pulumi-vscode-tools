@@ -14,12 +14,20 @@ Features include:
 
 ### Install the software
 
-1. Install Pulumi 3.132.0 (or greater) using [these instructions](https://www.pulumi.com/docs/install/), and restart VS Code.
+1. Install Pulumi 3.132.0 (or greater) using [these instructions](https://www.pulumi.com/docs/install/).
 2. Install the [Pulumi Tools extension](https://marketplace.visualstudio.com/items?itemName=pulumi.pulumi-vscode-tools) using Visual Studio Marketplace.
 
 ## Using Pulumi IaC
 
 This extension allows you to launch and debug Pulumi programs within VS Code.
+
+### Install Pulumi CLI
+
+When `pulumi` isn't on your PATH, the extension automatically installs the Pulumi CLI using the
+Installation Script method, to `~/.pulumi/bin`.
+
+The `pulumi.root` configuration setting allows you to customize
+the install location. Do not include the `bin/` folder in the value.
 
 ### Open a Project
 
@@ -36,11 +44,23 @@ for the current Pulumi stack. To use an automatic debug configuration, do the fo
 
 1. Select the __Run and Debug__ icon.
 2. Choose __Show all automatic debug configurations__.
-3. Select "Pulumi..." then "pulumi preview" or "pulumi up".
-4. Click the __Start Debugging__ icon on the selected configuration.
-5. Select or create a stack when prompted to do so.
+3. Select "Pulumi..." then "pulumi preview" or "pulumi up".  Debugging will start automatically.
 
-Alternatively, you can run your configuration through the Command Palette (⇧⌘P) by filtering on __Debug: Select and Start Debugging__.
+<figure align="center">
+  <img src="images/docs/iac-automatic-1.png" alt="Automatic Debug Configuration" />
+</figure>
+
+<figure align="center">
+  <img src="images/docs/iac-automatic-2.png" alt="Automatic Debug Configuration" />
+</figure>
+
+4. Select or create a stack if prompted to do so.
+
+<figure align="center">
+  <img src="images/docs/iac-stack-selection-1.png" alt="Stack Selection" />
+</figure>
+
+Alternatively, you can select and launch a configuration through the Command Palette (⇧⌘P) by filtering on __Debug: Select and Start Debugging__.
 
 ### Create a Launch Configuration
 
@@ -48,6 +68,10 @@ To create a customized launch configuration, do one of the following:
 
 1. When selecting an automatic debug configuration, click the gear icon to customize the configuration.
 2. Create a launch.json file and use a configuration template.
+
+<figure align="center">
+  <img src="images/docs/iac-launch-configuration.png" alt="Launch Configuration" />
+</figure>
 
 The extension provides the following configuration templates:
 - `pulumi up`
@@ -64,6 +88,23 @@ The following properties are supported:
 | `workDir` | string | Run Pulumi as if it had been started in another directory. |  |
 | `env` | object | Environment variables for the Pulumi CLI. |  |
 | `noDebug` | boolean | Run without debugging. |  |
+
+### Debug your Program
+
+Set breakpoints in your program code and enjoy the full functionality of the VS Code debugger.
+See ["Debugging"](https://code.visualstudio.com/docs/editor/debugging) for more information.
+
+<figure align="center">
+  <img src="images/docs/iac-debugging.png" alt="Debugging" />
+</figure>
+
+### Pulumi CLI Output
+
+Access the CLI output via the Debug Console view.
+
+<figure align="center">
+  <img src="images/docs/iac-debug-console.png" alt="Debug Console" />
+</figure>
 
 ### Run without Debugging
 To run without debugging, do one of the following:
