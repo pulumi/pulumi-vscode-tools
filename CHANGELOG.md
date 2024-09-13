@@ -6,6 +6,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## v0.1.0
 - Initial release
 - Add ESC Explorer feature
 - Add IaC Debugging feature
