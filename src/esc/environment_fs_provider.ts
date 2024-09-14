@@ -12,8 +12,8 @@ const defaultYaml = `# See https://www.pulumi.com/docs/esc/reference/ for additi
 
 # imports is an optional top-level key
 # imports:
-#   - environment-a
-#   - environment-b
+#   - project/environment-a
+#   - project/environment-b@stable
 
 # ---------------------------------------------------------------------------------------
 # Main configuration -- set configuration values either as static values, or interpolated
@@ -45,31 +45,50 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
 
     private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
+    private updates = new Map<string, number>();
+    private sizes = new Map<string, number>();
     constructor(private api: EscApi) {}
 
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
         const parts = uri.path.split("/");
-        if (parts.includes('open') || parts.includes('rev')) {
+        if (parts.includes('rev')) {
             return {
                 type: vscode.FileType.File,
                 ctime: 0,
                 mtime: 0,
                 size: 0,
+            };
+        }
+
+        if (parts.includes('open')) {
+            const uriStr = uri.toString();
+            const index = uriStr.lastIndexOf('/open');
+            const envPath = uriStr.slice(0, index);
+            const mtime = this.updates.get(envPath) || 0;
+            const size = this.sizes.get(uri.toString()) || 0;
+            return {
+                type: vscode.FileType.File,
+                ctime: 0,
+                mtime: mtime,
+                size: size,
                 permissions: vscode.FilePermission.Readonly
             };
         }
-        
+
+        const mtime = this.updates.get(uri.toString()) || 0;
+        const size = this.sizes.get(uri.toString()) || 0;
         return {
             type: vscode.FileType.File,
             ctime: 0,
-            mtime: 0,
-            size: 0,
+            mtime: mtime,
+            size: size,
         };
     }
 
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
         let content = await this.getEnvironmentYaml(uri);
         
+        this.sizes.set(uri.toString(), content.toString().length);
         return Buffer.from(content);
     }
 
@@ -112,9 +131,19 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
     }
 
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean, overwrite: boolean }): Promise<void> {
+        const existingContent = await this.getEnvironmentYaml(uri);
+        if (existingContent === content.toString()) {
+            return;
+        }
+
         const { org, project, envName } = parseEnvUri(uri);
-        await this.api.patchEnvironment(org, project, envName, content.toString());
+        const contentStr = content.toString();
+        await this.api.patchEnvironment(org, project, envName, contentStr);
+        const uriStr = uri.toString();
+        this.updates.set(uriStr, Date.now());
+        this.sizes.set(uriStr, contentStr.length);
         this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+        await vscode.commands.executeCommand('pulumi.esc.refresh');
     }
 
     async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
