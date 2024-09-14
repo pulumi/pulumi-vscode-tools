@@ -4,11 +4,14 @@ The extension for developers building Pulumi applications.
 
 _Note_: This extension is in a public beta. If you have suggestions for features or find bugs, please open an issue.
 
-Features include:
+IAC Features include:
 - Run your Pulumi program from within Visual Studio Code.
-- Launch your program under a debugger.
-- Automatically generate a launch configuration for a Pulumi project.
-- Explorer for Pulumi ESC (Environments, Secrets, and Configuration).
+- [Launch your program under a debugger.](#start-debugging)
+- [Automatically generate a launch configuration for a Pulumi project.](#create-a-launch-configuration)
+- [Explorer for Pulumi ESC (Environments, Secrets, and Configuration).](#using-pulumi-esc)
+
+![Demo](images/docs/esc_demo.gif)
+
 
 ## Getting Started
 
@@ -122,36 +125,80 @@ From the primary sidebar, open the "Pulumi ESC Explorer" view, and click "login"
 
 Once logged in, you should see a tree of your organizations and, within each organization, your ESC environments.
 
+<figure align="center">
+  <img src="images/docs/explorer.png" alt="Pulumi ESC Explorer" />
+</figure>
+
 ### Create or Edit an Environment
 
-Click the plus sign on an organization node to create an environment.
+Click the plus sign on an organization or project node to create an environment.
 By clicking on an environment in the tree or creating a new environment, the extension will open an editor.
 Edit the environment definition and save to create a new revision.
+
+<figure align="center">
+  <img src="images/docs/add-env.png" alt="Add ESC Environment" />
+</figure>
 
 ### Open an Environment
 
 On the right side of the editor, click the Preview button to open the environment. You will be prompted for an output format.
 
+<figure align="center">
+  <img src="images/docs/open-env.png" alt="Open ESC Environment" />
+</figure>
+
 ### Delete an Environment
 
 If you hover over an environment, there is a icon that will delete the environment; you will be asked to enter the environment name to confirm.
 
+<figure align="center">
+  <img src="images/docs/delete-env.png" alt="Delete ESC Environment" />
+</figure>
+
 ### Decrypt an Environment
 
 If you hover over an environment, there is a icon that will decrypt the environment without opening it. This is useful in a clone/move scenario.
+
+<figure align="center">
+  <img src="images/docs/decrypt-env.png" alt="Decrypt ESC Environment" />
+</figure>
 
 ### Refresh Environments
 
 If you get out of date, you can always refresh using the icon at the top right of the Pulumi ESC Explorer tree view. 
 The extension auto refreshes only after a change.
 
+<figure align="center">
+  <img src="images/docs/refresh.png" alt="Refresh ESC Environment" />
+</figure>
+
 ### Search Environments
 
 Click the search icon in the top right, type in a search term, and see results in the pane that appears.
 
+<figure align="center">
+  <img src="images/docs/refresh.png" alt="Refresh ESC Environments" />
+</figure>
+
 ### Tag a Revision
 
 Click the tag icon on a revision and give it a name.
+
+<figure align="center">
+  <img src="images/docs/tag-revision.png" alt="Tag ESC Environment Revision" />
+</figure>
+
+### ESC Run in Terminal
+
+You can quickly populate an ESC Run command for an environment in the terminal.
+
+<figure align="center">
+  <img src="images/docs/run.png" alt="ESC Run in Terminal" />
+</figure>
+
+### Go to Definition/Find all References
+
+Both Go to Definition and Find all References are supported across symbols, interpolations, and values.
 
 ### Diff/Compare Environments and Revisions
 
