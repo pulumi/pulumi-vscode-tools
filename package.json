@@ -1,7 +1,7 @@
 {
   "name": "pulumi-vscode-tools",
-  "displayName": "Pulumi Tools",
-  "description": "Pulumi Visual Studio Code Tools",
+  "displayName": "Pulumi",
+  "description": "Pulumi Tools for Visual Studio Code",
   "version": "0.2.0",
   "engines": {
     "vscode": "^1.84.0"
