@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/pulumi/pulumi-vscode-tools/blob/main/README.md",
   "categories": [
+    "Programming Languages",
+    "Extension Packs",
     "Debuggers",
     "Other"
   ],
