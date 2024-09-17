@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import EscApi from './api';
 import * as yaml from "js-yaml";
 import { parseEnvUri, parseRevision } from './uriHelper';
+import { randomInt } from 'crypto';
 
 const defaultYaml = `# See https://www.pulumi.com/docs/esc/reference/ for additional examples.
 
@@ -47,6 +48,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
     private updates = new Map<string, number>();
     private sizes = new Map<string, number>();
+    private watches = new Map<vscode.Uri, boolean>();
     constructor(private api: EscApi) {}
 
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
@@ -60,12 +62,20 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
             };
         }
 
-        if (parts.includes('open')) {
-            const uriStr = uri.toString();
-            const index = uriStr.lastIndexOf('/open');
-            const envPath = uriStr.slice(0, index);
-            const mtime = this.updates.get(envPath) || 0;
-            const size = this.sizes.get(uri.toString()) || 0;
+        let uriStr = uri.toString();
+        const isOpen = parts.includes('open');
+        if (isOpen) {
+            uriStr = this.getOpenEnvPrefix(uri.toString());
+        }
+        
+        if (!this.updates.has(uriStr)) {
+            this.updates.set(uriStr, Date.now());
+        }
+
+        const mtime = this.updates.get(uriStr) || 0;
+        const size = this.sizes.get(uriStr) || randomInt(1000);
+
+        if (isOpen) {
             return {
                 type: vscode.FileType.File,
                 ctime: 0,
@@ -75,14 +85,18 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
             };
         }
 
-        const mtime = this.updates.get(uri.toString()) || 0;
-        const size = this.sizes.get(uri.toString()) || 0;
         return {
             type: vscode.FileType.File,
             ctime: 0,
             mtime: mtime,
             size: size,
         };
+    }
+
+    private getOpenEnvPrefix(uriStr: string) {
+        const index = uriStr.lastIndexOf('/open');
+        const envPath = uriStr.slice(0, index);
+        return envPath;
     }
 
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
@@ -141,8 +155,17 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
         await this.api.patchEnvironment(org, project, envName, contentStr);
         const uriStr = uri.toString();
         this.updates.set(uriStr, Date.now());
-        this.sizes.set(uriStr, contentStr.length);
-        this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+        
+        this.sizes.delete(uriStr);
+        const watchFires = new Map<vscode.Uri, vscode.FileChangeEvent>();
+        watchFires.set(uri, { type: vscode.FileChangeType.Changed, uri });
+        for (const[watch,_] of this.watches) {
+            if (watch.toString().startsWith(uriStr)) {
+                watchFires.set(watch, { type: vscode.FileChangeType.Changed, uri: watch });
+            }
+        }
+        this._emitter.fire(Array.from(watchFires.values()));
+
         await vscode.commands.executeCommand('pulumi.esc.refresh');
     }
 
@@ -162,7 +185,8 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
     }
 
     watch(resource: vscode.Uri, opts: { recursive: boolean; excludes: string[]; }): vscode.Disposable {
-        return new vscode.Disposable(() => { });
+        this.watches.set(resource, true);
+        return new vscode.Disposable(() => { this.watches.delete(resource); });
     }
 
     async rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void> {
