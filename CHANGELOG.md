@@ -11,3 +11,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Add ESC Explorer feature
 - Add IaC Debugging feature
 - Incorporate Pulumi LSP
+- Update ESC refresh after update
