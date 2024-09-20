@@ -409,7 +409,7 @@
     "@vscode/codicons": "^0.0.35",
     "@vscode/debugadapter": "^1.64.0",
     "await-notify": "^1.0.1",
-    "axios": "^1.6.8",
+    "axios": "^1.7.4",
     "js-yaml": "^4.1.0",
     "yaml": "^2.4.1"
   }
