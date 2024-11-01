@@ -182,7 +182,7 @@ export function runCommand(): vscode.Disposable {
             return;
         }
 
-        terminal.sendText(`esc run ${env.org}/${env.project}/${env.envName} --- `, false);
+        terminal.sendText(`esc run ${env.org}/${env.project}/${env.envName} -- `, false);
         terminal.show();
     });
 }
