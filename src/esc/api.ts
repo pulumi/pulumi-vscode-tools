@@ -99,6 +99,14 @@ export default class EscApi {
 
 
     async tagRevision(org: string, project: string, envName: string, tagName:string, revision: number): Promise<string> {
+        const tags = await this.listTags(org, project, envName);
+        if (tags.find(tag => tag.name === tagName)) {
+            const payload = { revision: revision };
+            const body = JSON.stringify(payload);
+            const data = this.patch(`/api/esc/environments/${org}/${project}/${envName}/versions/tags/${tagName}`, body, "Failed to move tag revision");
+            return data;
+        }
+
         const payload = {
             name: tagName,
             revision: revision,

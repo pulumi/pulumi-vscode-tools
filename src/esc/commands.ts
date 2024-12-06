@@ -4,7 +4,7 @@ import { Organization, Project, Environment, Revision } from './env_tree_data_pr
 import { formEnvUri } from './uriHelper';
 import { isPulumiEscEditor } from './editorHelper';
 import { EnvironmentsTreeDataProvider } from './env_tree_data_provider';
-
+import { Tag } from './models';
 const validRegex = /^[a-zA-Z][a-zA-Z0-9-_.]*$/;
 
 function inputError(value: string): vscode.InputBoxValidationMessage {
@@ -120,6 +120,11 @@ export function openEnvironmentCommand(): vscode.Disposable {
         const format = await vscode.window.showQuickPick(['yaml', 'json', 'shell', 'dotenv'], {
             placeHolder: 'format',
         });
+
+        if (!format || ['yaml', 'json', 'shell', 'dotenv'].includes(format) === false) {
+            return;
+        }
+
         const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`${editor!.document.uri.toString()}/open/${format}`));
         await vscode.window.showTextDocument(doc, {
             preview: true,
@@ -161,10 +166,8 @@ export function tagRevisionCommand(api: EscApi): vscode.Disposable {
             return;
         }
 
-        const tagName = await vscode.window.showInputBox({
-            prompt: `Type the tag you want to apply to ${rev.envName}:${rev.revision}`,
-            placeHolder: 'tag name',
-        });
+        const tags = await api.listTags(rev.org, rev.project, rev.envName);
+        const tagName = await getUserSuppliedTagName(tags, rev);
 
         if (!tagName) {
             return;
@@ -172,6 +175,30 @@ export function tagRevisionCommand(api: EscApi): vscode.Disposable {
 
         await api.tagRevision(rev.org, rev.project, rev.envName, tagName, rev.revision);
         await vscode.commands.executeCommand('pulumi.esc.refresh');
+    });
+}
+
+async function getUserSuppliedTagName(tags: Tag[], rev: Revision): Promise<string | undefined> {
+    return new Promise((resolve) => {
+        const quickPick = vscode.window.createQuickPick();
+        const choices = tags.filter(tag => tag.name !== 'latest' && tag.revision !== rev.revision).map(tag => tag.name);
+        quickPick.items = choices.map(label => ({ label }));
+
+        quickPick.title = `Select or type the tag you want to apply to ${rev.envName}:${rev.revision}`;
+
+        quickPick.onDidChangeValue(() => {
+            // INJECT user values into proposed values
+            if (!choices.includes(quickPick.value) && quickPick.value !== 'latest') {
+                quickPick.items = [quickPick.value, ...choices].map(label => ({ label }));
+            }
+        });
+
+        quickPick.onDidAccept(() => {
+            const selection = quickPick.activeItems[0];
+            resolve(selection.label);
+            quickPick.hide();
+        });
+        quickPick.show();
     });
 }
 
