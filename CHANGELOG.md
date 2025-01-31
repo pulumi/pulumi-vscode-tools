@@ -10,6 +10,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Fix for debugging with a self-managed backend #20
 - Extension should install the latest CLI #12
 - Add Pulumi Copilot to extension pack
+- New welcome text for the ESC Explorer
 
 ## v0.1.0
 - Initial release
