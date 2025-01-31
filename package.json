@@ -308,7 +308,7 @@
     "viewsWelcome": [
       {
         "view": "pulumi-esc-explorer",
-        "contents": "Welcome to Pulumi ESC! You will now be able to view and modify your ESC Environments inside VSCode.  To get started, login to Pulumi Cloud. \n[Login to Pulumi](command:pulumi.login)."
+        "contents": "Welcome to Pulumi ESC! You will now be able to view and modify your ESC Environments inside VSCode.  To get started, connect to Pulumi Cloud. \n[Connect to Pulumi Cloud](command:pulumi.login)\n"
       }
     ],
     "debuggers": [
