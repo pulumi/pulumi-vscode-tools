@@ -25,7 +25,8 @@
   ],
   "extensionDependencies": [],
   "extensionPack": [
-    "pulumi.pulumi-lsp-client"
+    "pulumi.pulumi-lsp-client",
+    "pulumi.pulumi-vscode-copilot"
   ],
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
