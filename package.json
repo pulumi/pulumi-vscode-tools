@@ -2,7 +2,7 @@
   "name": "pulumi-vscode-tools",
   "displayName": "Pulumi",
   "description": "Pulumi Tools for Visual Studio Code",
-  "version": "0.2.2",
+  "version": "0.3.0-0",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -406,7 +406,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@pulumi/pulumi": "dev",
+    "@pulumi/pulumi": "^3.147.0",
     "@vscode/codicons": "^0.0.35",
     "@vscode/debugadapter": "^1.64.0",
     "await-notify": "^1.0.1",

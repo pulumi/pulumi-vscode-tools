@@ -6,6 +6,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+- Ability to stop debugging #11
+- Fix for debugging with a self-managed backend #20
+- Extension should install the latest CLI #12
 - Add Pulumi Copilot to extension pack
 
 ## v0.1.0
