@@ -7,6 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Ability to stop debugging #11
+- Fix for debugging with a self-managed backend #20
 
 ## v0.1.0
 - Initial release
