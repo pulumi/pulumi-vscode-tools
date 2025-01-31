@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+- Add Pulumi Copilot to extension pack
+
 ## v0.1.0
 - Initial release
 - Add ESC Explorer feature
