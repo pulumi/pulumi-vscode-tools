@@ -35,13 +35,14 @@ export async function checkPulumiInstallation(): Promise<PulumiCommand|undefined
 		}
 }
 
-async function installPulumi(root?: string, version?: SemVer): Promise<PulumiCommand> {
+async function installPulumi(root?: string, minVersion?: SemVer): Promise<PulumiCommand> {
 	return await vscode.window.withProgress({
 		location: vscode.ProgressLocation.Notification,
 		title: "Installing Pulumi CLI...",
 		cancellable: false
 	}, async (progress, token) => {
-		return await PulumiCommand.install({root: root, version: version, skipVersionCheck: false});
+		// note: this installs the CLI version matching the SDK version (not necessarily the latest).
+		return await PulumiCommand.install({root: root, skipVersionCheck: false});
 	});
 }
 
