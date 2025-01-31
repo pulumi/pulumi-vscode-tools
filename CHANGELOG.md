@@ -6,6 +6,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+- Ability to stop debugging #11
 - Extension should install the latest CLI #12
 
 ## v0.1.0
