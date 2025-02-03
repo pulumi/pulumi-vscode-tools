@@ -19,9 +19,13 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('pulumi', factory));
 }
 
-async function pickStack(workspaceFolder: string): Promise<string | undefined> {
+async function pickStack(workspaceFolder: string, env?: { [key: string]: string; }): Promise<string | undefined> {
 	// create (or select if one already exists) a stack that uses our local program
-	const ws = await createWorkspace(workspaceFolder);
+	const ws = await createWorkspace(workspaceFolder, {
+		envVars: {
+			...env
+		},
+	});
 
 	const stackSelection = vscode.workspace.getConfiguration().get<string|undefined>('pulumi.debug.stackSelection');
 	if (stackSelection === 'automatic') {
@@ -72,6 +76,23 @@ async function pickStack(workspaceFolder: string): Promise<string | undefined> {
 	return picked?.label;
 }
 
+interface PulumiDebugConfiguation extends vscode.DebugConfiguration {
+	/** Deployment command (up, preview). */
+	command?: string;
+	/** The name of the stack to operate on. Defaults to the current stack */
+	stackName?: string;
+	/** Run pulumi as if it had been started in another directory. */
+	workDir?: string;
+	/** environment variables */
+	env?: { [key: string]: string; };
+	/** run without debugging */
+	noDebug?: boolean;
+}
+
+function isPulumiDebugConfiguration(config: vscode.DebugConfiguration): config is PulumiDebugConfiguation {
+	return config.type === 'pulumi';
+}
+
 class PulumiConfigurationProvider implements vscode.DebugConfigurationProvider {
 	/**
 	 * Resolve a debug configuration just before a debug session is being launched,
@@ -85,6 +106,9 @@ class PulumiConfigurationProvider implements vscode.DebugConfigurationProvider {
 	}
 
 	resolveDebugConfigurationWithSubstitutedVariables(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
+		if (!isPulumiDebugConfiguration(config)) {
+			return undefined;
+		}
 		const workDir = config.workDir;
 		if (!workDir) {
 			return undefined;
@@ -93,7 +117,7 @@ class PulumiConfigurationProvider implements vscode.DebugConfigurationProvider {
 		if (stackName) {
 			return config;
 		}
-		return pickStack(workDir).then(stackName => {
+		return pickStack(workDir, config.env).then(stackName => {
 			if (!stackName) {
 				return undefined;
 			}

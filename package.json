@@ -25,7 +25,8 @@
   ],
   "extensionDependencies": [],
   "extensionPack": [
-    "pulumi.pulumi-lsp-client"
+    "pulumi.pulumi-lsp-client",
+    "pulumi.pulumi-vscode-copilot"
   ],
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
@@ -405,7 +406,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@pulumi/pulumi": "dev",
+    "@pulumi/pulumi": "^3.147.0",
     "@vscode/codicons": "^0.0.35",
     "@vscode/debugadapter": "^1.64.0",
     "await-notify": "^1.0.1",
