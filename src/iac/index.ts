@@ -108,7 +108,11 @@ class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationPro
 	 * provideDebugConfigurations is called to provide automatic launch configurations without requiring a launch.json.
 	 */
 	provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
-		return vscode.workspace.findFiles('Pulumi.yaml').then((uris) => {
+		if (!folder) {
+			return [];
+		}
+		const pattern = new vscode.RelativePattern(folder, 'Pulumi.yaml');
+		return vscode.workspace.findFiles(pattern).then((uris) => {
 			if (uris.length === 0) {
 				return [];
 			}
