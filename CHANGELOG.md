@@ -7,6 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Ability to stop debugging #11
+- Respect workspace folder for auto debug configurations #31
 
 ## v0.1.0
 - Initial release
