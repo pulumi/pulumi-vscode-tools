@@ -11,7 +11,7 @@ const NEW_STACK_TEXT = 'Create a new stack...';
 export function activate(context: vscode.ExtensionContext) {
 	// register configuration providers for 'pulumi' debug type
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', new PulumiConfigurationProvider()));
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', new PulumiDynamicConfigurationProvider(), 
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('pulumi', new PulumiDynamicConfigurationProvider(),
 		vscode.DebugConfigurationProviderTriggerKind.Dynamic));
 
 	// register the debug adapter factory
@@ -27,7 +27,7 @@ async function pickStack(workspaceFolder: string, env?: { [key: string]: string;
 		},
 	});
 
-	const stackSelection = vscode.workspace.getConfiguration().get<string|undefined>('pulumi.debug.stackSelection');
+	const stackSelection = vscode.workspace.getConfiguration().get<string | undefined>('pulumi.debug.stackSelection');
 	if (stackSelection === 'automatic') {
 		const current = await ws.stack();
 		if (current) {
@@ -43,7 +43,7 @@ async function pickStack(workspaceFolder: string, env?: { [key: string]: string;
 			description: s.current ? `current` : ``,
 			detail: s.url,
 		};
-	}).concat({label: '', kind: vscode.QuickPickItemKind.Separator}).concat({ label: NEW_STACK_TEXT });
+	}).concat({ label: '', kind: vscode.QuickPickItemKind.Separator }).concat({ label: NEW_STACK_TEXT });
 
 	const picked = await vscode.window.showQuickPick(picks, {
 		placeHolder: 'Select a stack'
@@ -135,27 +135,37 @@ class PulumiDynamicConfigurationProvider implements vscode.DebugConfigurationPro
 		if (!folder) {
 			return [];
 		}
-		const pattern = new vscode.RelativePattern(folder, 'Pulumi.yaml');
+		const pattern = new vscode.RelativePattern(folder, '**/Pulumi.yaml');
 		return vscode.workspace.findFiles(pattern).then((uris) => {
 			if (uris.length === 0) {
 				return [];
 			}
-			return [
-				{
-					"type": "pulumi",
-					"request": "launch",
-					"name": "pulumi preview",
-					"command": "preview",
-					"workDir": "${workspaceFolder}"
-				},
-				{
-					"type": "pulumi",
-					"request": "launch",
-					"name": "pulumi up",
-					"command": "up",
-					"workDir": "${workspaceFolder}"
+			const configurations: DebugConfiguration[] = [];
+			for (const uri of uris) {
+				const folderPath = uri.fsPath.substring(0, uri.fsPath.lastIndexOf('/'));
+				const projectName = folderPath.substring(folderPath.lastIndexOf('/') + 1, folderPath.length);
+				var name = ` [${projectName}]`;
+				if (projectName === folder.name) {
+					name = "";
 				}
-			];
+				configurations.push(
+					{
+						"type": "pulumi",
+						"request": "launch",
+						"name": `pulumi preview${name}`,
+						"command": "preview",
+						"workDir": folderPath
+					},
+					{
+						"type": "pulumi",
+						"request": "launch",
+						"name": `pulumi up${name}`,
+						"command": "up",
+						"workDir": folderPath
+					}
+				);
+			}
+			return configurations;
 		});
 	}
 }
