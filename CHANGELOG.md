@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+- Add support to multiple projects inside a workspace #34
+
 ## v0.3.0
 
 - Ability to stop debugging #11
