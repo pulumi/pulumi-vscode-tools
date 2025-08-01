@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, AxiosInstance } from 'axios';
+import axios, { AxiosResponse, AxiosInstance, AxiosError } from 'axios';
 import * as config from './config';
 import * as models from './models';
 
@@ -79,6 +79,64 @@ export default class EscApi {
     async getEnvironmentRevision(org: string, project: string, envName: string, version: string): Promise<string> {
         const data = await this.get(`/api/esc/environments/${org}/${project}/${envName}/versions/${version}`, "Failed to get environment revision yaml");
         return data;
+    }
+
+    async getEnvironmentMetadata(org: string, project: string, envName: string): Promise<models.EnvironmentMetadata> {
+        const data = await this.get(`api/esc/environments/${org}/${project}/${envName}/metadata`, "Failed to get environment metadata");
+        return data;
+    }
+
+    async getChangeRequestDraft(org: string, project: string, envName: string, changeRequestId: string): Promise<{ content: string, etag: string }> {
+        try {
+            const request = await this.createRequest();
+            const response = await request.get(`/api/esc/environments/${org}/${project}/${envName}/drafts/${changeRequestId}`);
+            const etag = response.headers.etag ?? '';
+            return {
+                content: response.data,
+                etag: etag
+            };
+        } catch (err: any) {
+            throw new Error("Failed to get change request draft");
+        }
+    }
+
+    async patchChangeRequestDraft(org: string, project: string, envName: string, changeRequestId: string, content: string, etag: string): Promise<{ content: string, etag: string }> {
+        try {
+            const request = await this.createRequest();
+            const response = await request.patch(`/api/esc/environments/${org}/${project}/${envName}/drafts/${changeRequestId}`, content, {
+                headers: {
+                    'If-Match': etag
+                }
+            });
+            const newEtag = response.headers.etag ?? '';
+            return {
+                content: response.data,
+                etag: newEtag
+            };
+        } catch (e: any) {
+            throw Error("Failed to update change request draft.");
+        }
+    }
+
+    async createChangeRequestDraft(org: string, project: string, envName: string, content: string): Promise<string> {
+        try {
+            const request = await this.createRequest();
+            const response = await request.post(`/api/esc/environments/${org}/${project}/${envName}/drafts`, content);
+            return response.data.changeRequestId;
+        } catch {
+            throw Error("Failed to create change request draft."); 
+        }
+    }
+
+    async submitChangeRequest(changeRequestId: string, description: string): Promise<void> {
+        try {
+            const request = await this.createRequest();
+            await request.post(`/api/change-requests/pulumi/${changeRequestId}/submit`, {
+                description: description
+            });
+        } catch (e: any) {
+            throw Error("Failed to submit change request.");
+        }
     }
 
     async decryptEnvironment(org: string, project: string, envName: string): Promise<string> {
@@ -201,6 +259,14 @@ export default class EscApi {
             const response = await request.patch(path, content);
             return response.data;
         } catch (err: any) {
+            // We need to pass the error code to detect 409 for approvals.
+            if (err instanceof axios.AxiosError) {
+                const error = new Error(errorDescription);
+                (error as any).response = err.response;
+                (error as any).status = err.response?.status;
+                (error as any).originalError = err;
+                throw error;
+            }
             throw new Error(errorDescription);
         }
     }

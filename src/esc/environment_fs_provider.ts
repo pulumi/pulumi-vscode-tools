@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
 import * as yaml from "js-yaml";
-import { parseEnvUri, parseRevision } from './uriHelper';
+import { parseEnvUri, parseRevision, parseChangeRequestId, isChangeRequestUri } from './uriHelper';
 import { randomInt } from 'crypto';
+import * as config from './config';
 
 const defaultYaml = `# See https://www.pulumi.com/docs/esc/reference/ for additional examples.
 
@@ -49,6 +50,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
     private updates = new Map<string, number>();
     private sizes = new Map<string, number>();
     private watches = new Map<vscode.Uri, boolean>();
+    private etags = new Map<string, string>();
     constructor(private api: EscApi) {}
 
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
@@ -110,7 +112,15 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
         const { org, project, envName } = parseEnvUri(uri);
         
         const parts = uri.path.split("/");
-        if (parts.includes('decrypt')) {
+        if (isChangeRequestUri(uri)) {
+            const changeRequestId = parseChangeRequestId(uri);
+            if (changeRequestId) {
+                const result = await this.api.getChangeRequestDraft(org, project, envName, changeRequestId);
+                // Store the ETag for later use in writes
+                this.etags.set(uri.toString(), result.etag);
+                return result.content;
+            }
+        } else if (parts.includes('decrypt')) {
             const yaml = await this.api.decryptEnvironment(org, project, envName);
             return yaml;
         } else if (parts.includes('rev')) {
@@ -144,7 +154,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
         
     }
 
-    async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean, overwrite: boolean }): Promise<void> {
+    async writeFile(uri: vscode.Uri, content: Uint8Array, _options: { create: boolean, overwrite: boolean }): Promise<void> {
         const existingContent = await this.getEnvironmentYaml(uri);
         if (existingContent === content.toString()) {
             return;
@@ -152,7 +162,127 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
 
         const { org, project, envName } = parseEnvUri(uri);
         const contentStr = content.toString();
-        await this.api.patchEnvironment(org, project, envName, contentStr);
+        
+        try {
+            if (isChangeRequestUri(uri)) {
+                const changeRequestId = parseChangeRequestId(uri);
+                if (changeRequestId) {
+                    const etag = this.etags.get(uri.toString());
+                    if (!etag) {
+                        throw new Error('ETag not found for change request draft. Please reload the document.');
+                    }
+                    const result = await this.api.patchChangeRequestDraft(org, project, envName, changeRequestId, contentStr, etag);
+                    this.etags.set(uri.toString(), result.etag);
+
+                    const uriStr = uri.toString();
+                    this.updates.set(uriStr, Date.now());
+                    this.sizes.set(uriStr, contentStr.length);
+
+                    this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+
+                    const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}?version=${changeRequestId}`;
+                    vscode.window.showInformationMessage('New revision added', 'Open Change Request in Browser').then(selection => {
+                        if (selection === 'Open Change Request in Browser') {
+                            vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
+                        }
+                    });
+
+                } else {
+                    throw new Error('Invalid change request ID');
+                }
+            } else {
+                // For regular environments, check for active change requests before attempting to save
+                try {
+                    const metadata = await this.api.getEnvironmentMetadata(org, project, envName);
+                    if (metadata.activeChangeRequest?.changeRequestId) {
+                        const message = `Cannot save changes to "${envName}" because it has an active change request. You must resolve the change request first.`;
+                        const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}?version=${metadata.activeChangeRequest.changeRequestId}`;
+
+                        const selection = await vscode.window.showErrorMessage(message, 'Open Draft in Editor', 'Open Change Request in Browser', 'Cancel');
+                        if (selection === 'Open Draft in Editor') {
+                            await vscode.commands.executeCommand('pulumi.esc.open-change-request-in-editor', org, project, envName, metadata.activeChangeRequest.changeRequestId);
+                        } else if (selection === 'Open Change Request in Browser') {
+                            vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
+                        }
+
+                        // Prevent the save operation by returning early
+                        return;
+                    }
+                } catch (metadataError) {
+                    console.warn('Failed to check environment metadata before save:', metadataError);
+                    throw new Error('Failed to check environment metadata');
+                }
+                
+                try {
+                    await this.api.patchEnvironment(org, project, envName, contentStr);
+                } catch (patchError: any) {
+                    // Check if this is a 409 Conflict error (change request required)
+                    if (patchError.status === 409) {
+                        const selection = await vscode.window.showErrorMessage(
+                            `Cannot save changes to "${envName}". You need to create a Change Request.`,
+                            'Create Change Request',
+                            'Cancel'
+                        );
+                        
+                        if (selection === 'Create Change Request') {
+                                const changeRequestId = await this.api.createChangeRequestDraft(org, project, envName, contentStr);
+                                
+                                const description = await vscode.window.showInputBox({
+                                    prompt: 'Enter a description for this change request',
+                                    placeHolder: 'Describe your changes...'
+                                });
+
+                                await this.api.submitChangeRequest(changeRequestId, description ?? "");
+
+                                // Update file system state to mark as saved (revert to original state)
+                                const uriStr = uri.toString();
+                                this.updates.set(uriStr, Date.now());
+                                this.sizes.set(uriStr, existingContent.length);
+
+                                // Fire change event to notify VS Code the file has been "saved" (reverted)
+                                this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+
+                                // Force reload the document to show original content
+                                const openEditors = vscode.window.visibleTextEditors.filter(editor => 
+                                    editor.document.uri.toString() === uri.toString()
+                                );
+                                for (const editor of openEditors) {
+                                    // Reload the document by closing and reopening it
+                                    await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
+                                    await vscode.commands.executeCommand('vscode.open', uri);
+                                }
+
+                                await vscode.commands.executeCommand('pulumi.esc.refresh');
+
+                                // Show non-blocking notification
+                                const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}?version=${changeRequestId}`;
+                                vscode.window.showInformationMessage(
+                                    'Change request created successfully!',
+                                    'Open Change Request in Browser',
+                                    'Open Draft in Editor'
+                                ).then(result => {
+                                    if (result === 'Open Change Request in Browser') {
+                                        vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
+                                    } else if (result === 'Open Draft in Editor') {
+                                        vscode.commands.executeCommand('pulumi.esc.edit-change-request-in-editor', org, project, envName, changeRequestId);
+                                    }
+                                });
+                                
+                                // Return successfully - don't re-throw the error
+                                return;
+                        }
+                        
+                    }
+                    
+                    // Re-throw other errors
+                    throw patchError;
+                }
+            }
+        } catch (e: any) {
+            vscode.window.showErrorMessage(e.message);
+            return; // Exit early on error
+        }
+
         const uriStr = uri.toString();
         this.updates.set(uriStr, Date.now());
         

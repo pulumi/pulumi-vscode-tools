@@ -27,6 +27,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const addEnvCmd = commands.addEnvironmentCommand(api);
     const addEnvFromProjectCmd = commands.addEnvironmentFromProjectCommand(api);
     const openEnvCmd = commands.openEnvironmentCommand();
+    const editChangeRequestInEditorCmd = commands.editChangeRequestInEditorCommand();
     const deleteEnvCmd = commands.deleteEnvironmentCommand(api);
     const decryptEnvCmd = commands.decryptEnvironmentCommand();
     const compareFilesCmd = commands.compareFilesCommands();
@@ -48,7 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const sessionChanged = vscode.authentication.onDidChangeSessions(handleAuthSessionChange);
 
     context.subscriptions.push(treeView, searchTreeView, docProvider, onOpen, fs, trackActiveEnv, sessionChanged,
-        auth, signInCmd, addEnvCmd, addEnvFromProjectCmd, openEnvCmd, deleteEnvCmd, decryptEnvCmd,tagRevisionCmd, 
+        auth, signInCmd, addEnvCmd, addEnvFromProjectCmd, openEnvCmd, editChangeRequestInEditorCmd, deleteEnvCmd, decryptEnvCmd, tagRevisionCmd,
         compareFilesCmd, runCmd, searchCmd, refreshCmd);
 }
 

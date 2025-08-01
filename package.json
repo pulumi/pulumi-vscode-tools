@@ -265,11 +265,11 @@
         },
         {
           "command": "pulumi.esc.selectForCompare",
-          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision)"
+          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision || viewItem == pendingChangeRequest)"
         },
         {
           "command": "pulumi.esc.compareWithSelected",
-          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision) && pulumi.esc.compareEnabled"
+          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision || viewItem == pendingChangeRequest) && pulumi.esc.compareEnabled"
         }
       ]
     },

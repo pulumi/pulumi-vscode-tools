@@ -5,7 +5,6 @@ export interface OrganizationSummary {
     avatarUrl: string;
 }
 
-
 export interface User {
     id: string;
     name: string;
@@ -133,6 +132,18 @@ export interface EnvironmentDefinitionValues {
      * @memberof EnvironmentDefinitionValues
      */
     'environmentVariables'?: { [key: string]: string; };
+}
+/**
+ * @export
+ * @interface EnvironmentMetadata
+ */
+export interface EnvironmentMetadata {
+    id: string;
+    userPermission: string;
+    activeChangeRequest: {
+        changeRequestId: string;
+    }
+    gatedActions: string[];
 }
 /**
  * 
