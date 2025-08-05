@@ -266,7 +266,7 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
         }
     }
 
-       private async offerCreateChangeRequest(uri: vscode.Uri, contentStr: string, existingContent: string) {
+    private async offerCreateChangeRequest(uri: vscode.Uri, contentStr: string, existingContent: string) {
         const { org, project, envName } = uriHelper.parseEnvUri(uri);
 
         const selection = await vscode.window.showErrorMessage(
