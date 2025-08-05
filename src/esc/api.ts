@@ -183,7 +183,7 @@ export default class EscApi {
             const response = await this.post(url, "", "Failed to check environment");
             return response;
         } catch (err: any) {
-            if (err instanceof axios.AxiosError) {
+            if (err instanceof AxiosError) {
                 if (err.response?.status === 400) {
                     return err.response.data;
                 }
@@ -199,7 +199,7 @@ export default class EscApi {
             const response = await request.post(`/api/esc/environments/${org}/yaml/check`, definition);
             return response.data;
         } catch (err: any) {
-            if (err instanceof axios.AxiosError) {
+            if (err instanceof AxiosError) {
                 if (err.response?.status === 400) {
                     return err.response.data;
                 }
@@ -224,7 +224,7 @@ export default class EscApi {
             await request.head(`/api/esc/environments/${org}/${project}/${envName}`);
             return true;
         } catch (err: any) {
-            if (err instanceof axios.AxiosError) {
+            if (err instanceof AxiosError) {
                 if (err.response?.status === 404) {
                     return false;
                 }
@@ -260,7 +260,7 @@ export default class EscApi {
             return response.data;
         } catch (err: any) {
             // We need to pass the error code to detect 409 for approvals.
-            if (err instanceof axios.AxiosError) {
+            if (err instanceof AxiosError) {
                 const error = new Error(errorDescription);
                 (error as any).response = err.response;
                 (error as any).status = err.response?.status;
