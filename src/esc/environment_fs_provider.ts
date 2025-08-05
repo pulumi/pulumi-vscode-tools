@@ -4,7 +4,6 @@ import * as yaml from "js-yaml";
 import * as uriHelper from './uriHelper';
 import { randomInt } from 'crypto';
 import * as config from './config';
-import { EnvironmentMetadata } from './models';
 
 const defaultYaml = `# See https://www.pulumi.com/docs/esc/reference/ for additional examples.
 
