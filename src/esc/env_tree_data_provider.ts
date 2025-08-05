@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
-import { formEnvUri, formOrgUri, formSearchUri,  } from './uriHelper';
+import * as config from './config';
+import { formEnvUri, formOrgUri, formSearchUri, formChangeRequestUri } from './uriHelper';
 import { isPulumiEscEditor, isPulumiEscDocument } from './editorHelper';
-import * as config from "./config";
 
 export function trackEnvironmentEditorSelection(escTreeProvider: EnvironmentsTreeDataProvider, treeView: vscode.TreeView<any>): (e: vscode.TextEditor | undefined) => any {
     return (editor) => {
@@ -32,7 +32,7 @@ export function onOpenLanguageSelector(): (e: vscode.TextDocument) => any {
     };
 }
   
-type EscTreeItem = Organization | Project | Environment | Revision | Search;
+type EscTreeItem = Organization | Project | Environment | Revision | Search | PendingChangeRequest;
 export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<EscTreeItem> {
     public _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
     public onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
@@ -95,12 +95,37 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
     private async getRevisions(env: Environment) {
         const { org, project, envName } = env;
 
-        const revisions = await this.api.listRevisions(org, project, envName);
+        const [revisions, metadata] = await Promise.all([
+            this.api.listRevisions(org, project, envName),
+            this.api.getEnvironmentMetadata(org, project, envName).catch(() => null) // Don't fail if metadata fetch fails
+        ]);
 
         const revItems = revisions.map(rev => new Revision(org, env.project, envName, rev.number, env, rev.tags || [], vscode.TreeItemCollapsibleState.None));
         revItems.forEach(item => this.mapResourceUris(item));
 
-        return revItems;
+        const result: EscTreeItem[] = [...revItems];
+
+        // Check for active change request and add pending change request item
+        if (metadata?.activeChangeRequest?.changeRequestId) {
+            // Calculate next version number (highest revision + 1)
+            const nextVersion = revisions.length > 0 ? Math.max(...revisions.map(r => r.number)) + 1 : 1;
+            
+            const pendingItem = new PendingChangeRequest(
+                org, 
+                project, 
+                envName, 
+                metadata.activeChangeRequest.changeRequestId, 
+                nextVersion, 
+                env, 
+                vscode.TreeItemCollapsibleState.None
+            );
+            this.mapResourceUris(pendingItem);
+            
+            // Add pending change request at the beginning of the list
+            result.unshift(pendingItem);
+        }
+
+        return result;
     }
 
     private async getProjects(organization: Organization) {
@@ -137,7 +162,7 @@ export class EnvironmentsTreeDataProvider implements vscode.TreeDataProvider<Esc
     }
 
     async getParent(element: EscTreeItem): Promise<Environment | undefined> {
-        if (element instanceof Revision) {
+        if (element instanceof Revision || element instanceof PendingChangeRequest) {
             return element.parent;
         }
 
@@ -207,6 +232,7 @@ export class Revision extends vscode.TreeItem {
         this.id = `env-${org}-${project}-${envName}-${revision}`;
         this.resourceUri = uri;
         this.contextValue = 'revision';
+        this.iconPath = new vscode.ThemeIcon("file-code");
         this.command = {
             command: 'vscode.open',
             title: 'Edit Environment',
@@ -243,5 +269,30 @@ export class Search extends vscode.TreeItem {
         this.resourceUri = uri;
         this.contextValue = 'search';
         this.iconPath = new vscode.ThemeIcon("search");
+    }
+}
+
+export class PendingChangeRequest extends vscode.TreeItem {
+    constructor(
+        public readonly org: string,
+        public readonly project: string,
+        public readonly envName: string,
+        public readonly changeRequestId: string,
+        public readonly nextVersion: number,
+        public readonly parent: Environment,
+        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    ) {
+        super(`v${nextVersion} pending approval`, collapsibleState);
+        this.label = `v${nextVersion} pending approval`;
+        const uri = formChangeRequestUri(org, project, envName, changeRequestId);
+        this.id = `env-${org}-${project}-${envName}-cr-${changeRequestId}`;
+        this.resourceUri = uri;
+        this.contextValue = 'pendingChangeRequest';
+        this.iconPath = new vscode.ThemeIcon("clock");
+        this.command = {
+            command: 'pulumi.esc.edit-change-request-in-editor',
+            title: 'Edit Change Request Draft',
+            arguments: [uri],
+        };
     }
 }

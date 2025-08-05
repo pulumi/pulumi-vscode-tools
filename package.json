@@ -156,6 +156,11 @@
         "command": "pulumi.esc.tagRevision",
         "title": "Tag",
         "icon": "$(tag)"
+      },
+      {
+        "command": "pulumi.esc.edit-change-request-in-editor",
+        "title": "Edit Change Request in Editor",
+        "icon": "$(edit)"
       }
     ],
     "languages": [
@@ -211,6 +216,10 @@
         {
           "command": "pulumi.esc.tagRevision",
           "when": "false"
+        },
+        {
+          "command": "pulumi.esc.edit-change-request-in-editor",
+          "when": "false"
         }
       ],
       "editor/title": [
@@ -265,11 +274,16 @@
         },
         {
           "command": "pulumi.esc.selectForCompare",
-          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision)"
+          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision || viewItem == pendingChangeRequest)"
         },
         {
           "command": "pulumi.esc.compareWithSelected",
-          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision) && pulumi.esc.compareEnabled"
+          "when": "view == pulumi-esc-explorer && (viewItem == environment || viewItem == revision || viewItem == pendingChangeRequest) && pulumi.esc.compareEnabled"
+        },
+        {
+          "command": "pulumi.esc.edit-change-request-in-editor",
+          "when": "view == pulumi-esc-explorer && viewItem == pendingChangeRequest",
+          "group": "inline"
         }
       ]
     },

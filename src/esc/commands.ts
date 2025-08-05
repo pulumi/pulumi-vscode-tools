@@ -129,6 +129,21 @@ export function openEnvironmentCommand(): vscode.Disposable {
     });
 }
 
+export function editChangeRequestInEditorCommand(): vscode.Disposable {
+    return vscode.commands.registerCommand('pulumi.esc.edit-change-request-in-editor', async (uri: vscode.Uri) => {
+        try {
+            const doc = await vscode.workspace.openTextDocument(uri);
+            await vscode.window.showTextDocument(doc, {
+                preview: false,
+                viewColumn: vscode.ViewColumn.Active
+            });
+            
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to open change request in editor: ${error}`);
+        }
+    });
+}
+
 export function deleteEnvironmentCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.delete-env', async (env: Environment) => {
         if (!env) {

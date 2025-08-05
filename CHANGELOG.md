@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+- Added support for Change Requests / Approvals in Pulumi ESC
+
 ## v0.3.0
 
 - Ability to stop debugging #11
