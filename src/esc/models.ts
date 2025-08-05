@@ -142,7 +142,7 @@ export interface EnvironmentMetadata {
     userPermission: string;
     activeChangeRequest: {
         changeRequestId: string;
-    }
+    };
     gatedActions: string[];
 }
 /**

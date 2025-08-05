@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import EscApi from './api';
 import * as config from './config';
-import { formEnvUri, formOrgUri, formSearchUri, formChangeRequestUriWithDisplayName } from './uriHelper';
+import { formEnvUri, formOrgUri, formSearchUri, formChangeRequestUri } from './uriHelper';
 import { isPulumiEscEditor, isPulumiEscDocument } from './editorHelper';
 
 export function trackEnvironmentEditorSelection(escTreeProvider: EnvironmentsTreeDataProvider, treeView: vscode.TreeView<any>): (e: vscode.TextEditor | undefined) => any {
@@ -284,7 +284,7 @@ export class PendingChangeRequest extends vscode.TreeItem {
     ) {
         super(`v${nextVersion} pending approval`, collapsibleState);
         this.label = `v${nextVersion} pending approval`;
-        const uri = formChangeRequestUriWithDisplayName(org, project, envName, changeRequestId, `v${nextVersion} pending approval`);
+        const uri = formChangeRequestUri(org, project, envName, changeRequestId);
         this.id = `env-${org}-${project}-${envName}-cr-${changeRequestId}`;
         this.resourceUri = uri;
         this.contextValue = 'pendingChangeRequest';

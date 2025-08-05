@@ -6,12 +6,7 @@ export function formEnvUri(org: string, project:string, name: string, suffix: st
 }
 
 export function formChangeRequestUri(org: string, project: string, name: string, changeRequestId: string): vscode.Uri {
-    return vscode.Uri.parse(`${PulumiScheme}://env/${org}/${project}/${name}/cr/${changeRequestId}`);
-}
-
-export function formChangeRequestUriWithDisplayName(org: string, project: string, name: string, changeRequestId: string, displayName: string): vscode.Uri {
-    // Encode the actual change request ID in the fragment, and use the display name in the path
-    return vscode.Uri.parse(`${PulumiScheme}://env/${org}/${project}/${name}/cr/${encodeURIComponent(displayName)}#${changeRequestId}`);
+    return vscode.Uri.parse(`${PulumiScheme}://env/${org}/${project}/${name}/cr/Change Request Draft#${changeRequestId}`);
 }
 
 export function formEnvUriFromImportRef(org: string, ref: string): vscode.Uri {
@@ -55,6 +50,18 @@ export function parseChangeRequestId(uri: vscode.Uri): string | null {
 
 export function isChangeRequestUri(uri: vscode.Uri): boolean {
     return uri.path.includes("/cr/");
+}
+
+export function isDecryptUri(uri: vscode.Uri): boolean {
+    return uri.path.includes("/decrypt/");
+}
+
+export function isRevisionUri(uri: vscode.Uri): boolean {
+    return uri.path.includes("/rev/");
+}
+
+export function isOpenUri(uri: vscode.Uri): boolean {
+    return uri.path.includes("/open/");
 }
 
 export function isPulumiUri(uri: vscode.Uri | undefined): boolean {
