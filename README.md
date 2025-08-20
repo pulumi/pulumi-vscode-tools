@@ -189,6 +189,14 @@ Click the tag icon on a revision and give it a name.
   <img src="images/docs/tag-revision.png" alt="Tag ESC Environment Revision" />
 </figure>
 
+### Approvals in ESC
+
+You can create / update change requests for environments that has [Approvals for ESC enabled](https://www.pulumi.com/docs/esc/administration/approvals/).
+
+<figure align="center">
+  <img src="images/docs/esc-approvals.png" alt="Manage Drafts and Approvals workflow" />
+</figure>
+
 ### ESC Run in Terminal
 
 You can quickly populate an ESC Run command for an environment in the terminal.
