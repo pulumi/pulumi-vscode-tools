@@ -150,12 +150,12 @@ export function openEnvironmentCommand(api: EscApi): vscode.Disposable {
 
 async function offerCreateOpenRequest(api: EscApi, org: string, project: string, envName: string) {
     const selection = await vscode.window.showErrorMessage(
-        `Cannot open "${envName}". You need to create an Open Request.`,
-        'Create Open Request',
+        `Cannot open "${envName}". You must to request approval.`,
+        'Request Open Access',
         'Cancel'
     );
 
-    if (selection !== 'Create Open Request') {
+    if (selection !== 'Request Open Access') {
         return;
     }
 
@@ -197,10 +197,10 @@ async function offerCreateOpenRequest(api: EscApi, org: string, project: string,
     // Show non-blocking notification
     const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}/change-requests?requestId=${changeRequestId}`;
     vscode.window.showInformationMessage(
-        'Change request created successfully!',
-        'Open Request in Browser',
+        'Access request created. Please wait for approval.',
+        'Open Access Request in Browser',
     ).then(result => {
-        if (result === 'Open Request in Browser') {
+        if (result === 'Open Access Request in Browser') {
             vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
         }
     });
