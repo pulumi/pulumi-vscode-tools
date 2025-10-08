@@ -4,6 +4,8 @@ import { Organization, Project, Environment, Revision } from './env_tree_data_pr
 import { formEnvUri } from './uriHelper';
 import { isPulumiEscEditor } from './editorHelper';
 import { EnvironmentsTreeDataProvider } from './env_tree_data_provider';
+import * as uriHelper from "./uriHelper";
+import * as config from "./config";
 
 const validRegex = /^[a-zA-Z][a-zA-Z0-9-_.]*$/;
 
@@ -99,9 +101,16 @@ export async function addEnvironment(api: EscApi, org: string, project: string) 
     vscode.commands.executeCommand('pulumi.esc.refresh');
 }
 
-export function decryptEnvironmentCommand(): vscode.Disposable {
+export function decryptEnvironmentCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.decrypt-env', async (env: Environment) => {
         if (!env) {
+            return;
+        }
+
+        // Check whether Open Approval is required
+        const metadata = await api.getEnvironmentMetadata(env.org, env.project, env.envName);
+        if (metadata.openRequestNeeded) {
+            await offerCreateOpenRequest(api, env.org, env.project, env.envName);
             return;
         }
 
@@ -109,11 +118,21 @@ export function decryptEnvironmentCommand(): vscode.Disposable {
     });
 }
 
-export function openEnvironmentCommand(): vscode.Disposable {
+export function openEnvironmentCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.open-env', async () => {
         const editor = vscode.window.activeTextEditor;
 
         if (!isPulumiEscEditor(editor)) {
+            return;
+        }
+
+        // Parse URI to get environment details
+        const { org, project, envName } = uriHelper.parseEnvUri(editor!.document.uri);
+
+        // Check whether Open Approval is required
+        const metadata = await api.getEnvironmentMetadata(org, project, envName);
+        if (metadata.openRequestNeeded) {
+            await offerCreateOpenRequest(api, org, project, envName);
             return;
         }
 
@@ -127,6 +146,50 @@ export function openEnvironmentCommand(): vscode.Disposable {
             viewColumn: vscode.ViewColumn.Beside,
         });
     });
+}
+
+async function offerCreateOpenRequest(api: EscApi, org: string, project: string, envName: string) {
+    const selection = await vscode.window.showErrorMessage(
+        `Cannot open "${envName}". You need to create an Open Request.`,
+        'Create Open Request',
+        'Cancel'
+    );
+
+    if (selection !== 'Create Open Request') {
+        return;
+    }
+
+    const description = await vscode.window.showInputBox({
+        prompt: 'Why are you requesting open access?',
+        placeHolder: ''
+    });
+    if (description === undefined) {
+        return;
+    }
+
+    const accessDuration = await vscode.window.showInputBox({
+        prompt: 'How long do you need to access the environment (in seconds)?',
+        value: '3600'
+    });
+    if (accessDuration === undefined) {
+        return;
+    }
+
+    const changeRequestId = await api.createOpenRequest(org, project, envName, Number.parseInt(accessDuration, 10));
+    await api.submitChangeRequest(changeRequestId, description);
+
+    // Show non-blocking notification
+    const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}/change-requests?requestId=${changeRequestId}`;
+    vscode.window.showInformationMessage(
+        'Change request created successfully!',
+        'Open Request in Browser',
+    ).then(result => {
+        if (result === 'Open Request in Browser') {
+            vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
+        }
+    });
+
+    return;
 }
 
 export function editChangeRequestInEditorCommand(): vscode.Disposable {

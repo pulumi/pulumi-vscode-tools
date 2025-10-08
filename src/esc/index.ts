@@ -26,10 +26,10 @@ export async function activate(context: vscode.ExtensionContext) {
     const signInCmd = commands.loginCommand();
     const addEnvCmd = commands.addEnvironmentCommand(api);
     const addEnvFromProjectCmd = commands.addEnvironmentFromProjectCommand(api);
-    const openEnvCmd = commands.openEnvironmentCommand();
+    const openEnvCmd = commands.openEnvironmentCommand(api);
     const editChangeRequestInEditorCmd = commands.editChangeRequestInEditorCommand();
     const deleteEnvCmd = commands.deleteEnvironmentCommand(api);
-    const decryptEnvCmd = commands.decryptEnvironmentCommand();
+    const decryptEnvCmd = commands.decryptEnvironmentCommand(api);
     const compareFilesCmd = commands.compareFilesCommands();
     const tagRevisionCmd = commands.tagRevisionCommand(api);
     
