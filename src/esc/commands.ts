@@ -199,15 +199,13 @@ async function offerCreateOpenRequest(api: EscApi, org: string, project: string,
     await api.submitChangeRequest(changeRequestId, description);
 
     const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}/change-requests?requestId=${changeRequestId}`;
-    vscode.window.showInformationMessage(
+    const result = await vscode.window.showInformationMessage(
         'Access request created. Please wait for approval.',
         'Open Access Request in Browser',
-    ).then(result => {
-        if (result === 'Open Access Request in Browser') {
-            vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
-        }
-    });
-
+    );
+    if (result === 'Open Access Request in Browser') {
+        await vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
+    }
     return;
 }
 
