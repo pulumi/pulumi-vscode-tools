@@ -144,6 +144,7 @@ export interface EnvironmentMetadata {
         changeRequestId: string;
     };
     gatedActions: string[];
+    openRequestNeeded: boolean;
 }
 /**
  * 

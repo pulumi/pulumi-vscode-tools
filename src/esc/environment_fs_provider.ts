@@ -145,6 +145,14 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
 
     private async getDecryptedEnvironmentYaml(uri: vscode.Uri): Promise<string> {
         const { org, project, envName } = uriHelper.parseEnvUri(uri);
+
+        // check whether an open grant is required
+        const metadata = await this.api.getEnvironmentMetadata(org, project, envName);
+        if (metadata.openRequestNeeded) {
+            await this.offerCreateOpenRequest(uri);
+            throw vscode.FileSystemError.NoPermissions("open grant required");
+        }
+
         const yaml = await this.api.decryptEnvironment(org, project, envName);
         return yaml;
     }
@@ -158,6 +166,14 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
 
     private async getOpenedEnvironmentYaml(uri: vscode.Uri): Promise<string> {
         const { org, project, envName } = uriHelper.parseEnvUri(uri);
+
+        // check whether an open grant is required
+        const metadata = await this.api.getEnvironmentMetadata(org, project, envName);
+        if (metadata.openRequestNeeded) {
+            await this.offerCreateOpenRequest(uri);
+            throw vscode.FileSystemError.NoPermissions("open grant required");
+        }
+
         const format = uri.path.split('/').pop();
         const env = await this.api.openEnvironment(org, project, envName);
         const environment = valueToJSON({ value: env.properties || {} }, false);
@@ -173,6 +189,50 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
                 vscode.window.showErrorMessage(`Invalid format: ${format}`);
                 return "";
         }
+    }
+
+    private async offerCreateOpenRequest(uri: vscode.Uri) {
+        const { org, project, envName } = uriHelper.parseEnvUri(uri);
+
+        const selection = await vscode.window.showErrorMessage(
+            `Cannot open "${envName}". You need to create an Open Request.`,
+            'Create Open Request',
+            'Cancel'
+        );
+
+        if (selection !== 'Create Open Request') {
+            return;
+        }
+
+        const description = await vscode.window.showInputBox({
+            prompt: 'Why are you requesting open access?',
+            placeHolder: ''
+        });
+        if (description === undefined) {
+            return;
+        }
+
+        const accessDuration = await vscode.window.showInputBox({
+            prompt: 'How long do you need to access the environment (in seconds)?',
+            value: '3600'
+        });
+        if (accessDuration === undefined) {
+            return;
+        }
+
+        const changeRequestId = await this.api.createOpenRequest(org, project, envName, Number.parseInt(accessDuration, 10));
+        await this.api.submitChangeRequest(changeRequestId, description);
+
+        // Show non-blocking notification
+        const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}/change-requests?requestId=${changeRequestId}`;
+        vscode.window.showInformationMessage(
+            'Change request created successfully!',
+            'Open Request in Browser',
+        ).then(result => {
+            if (result === 'Open Request in Browser') {
+                vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
+            }
+        });
     }
 
     private async getEnvironmentYaml(uri: vscode.Uri): Promise<string> {

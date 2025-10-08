@@ -139,6 +139,19 @@ export default class EscApi {
         }
     }
 
+    async createOpenRequest(org: string, project: string, envName: string, accessDuration: number): Promise<string> {
+        try {
+            const request = await this.createRequest();
+            const response = await request.post(`/api/esc/environments/${org}/${project}/${envName}/open/request`, {
+                grantExpirationSeconds: 86400, // 24h
+                accessDurationSeconds: accessDuration,
+            });
+            return response.data.changeRequests[0].changeRequestId;
+        } catch {
+            throw Error("Failed to create open request.");
+        }
+    }
+
     async decryptEnvironment(org: string, project: string, envName: string): Promise<string> {
         const data = await this.get(`/api/esc/environments/${org}/${project}/${envName}/decrypt`, "Failed to decrypt environment yaml");
         return data;
