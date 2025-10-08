@@ -168,14 +168,30 @@ async function offerCreateOpenRequest(api: EscApi, org: string, project: string,
     }
 
     const accessDuration = await vscode.window.showInputBox({
-        prompt: 'How long do you need to access the environment (in seconds)?',
-        value: '3600'
+        prompt: 'How long do you need to access the environment?',
+        placeHolder: 'e.g., 1h, 30m, 1d, 2h30m',
+        value: '1h',
+        validateInput: (value) => {
+            const seconds = parseDuration(value);
+            if (seconds === null) {
+                return inputError('Invalid duration format. Use d (days), h (hours), or m (minutes), e.g., 1h, 30m, 1d2h');
+            }
+            if (seconds <= 0) {
+                return inputError('Duration must be greater than 0');
+            }
+            return null;
+        }
     });
     if (accessDuration === undefined) {
         return;
     }
 
-    const changeRequestId = await api.createOpenRequest(org, project, envName, Number.parseInt(accessDuration, 10));
+    const durationSeconds = parseDuration(accessDuration);
+    if (durationSeconds === null) {
+        return;
+    }
+
+    const changeRequestId = await api.createOpenRequest(org, project, envName, durationSeconds);
     await api.submitChangeRequest(changeRequestId, description);
 
     // Show non-blocking notification
@@ -190,6 +206,36 @@ async function offerCreateOpenRequest(api: EscApi, org: string, project: string,
     });
 
     return;
+}
+
+function parseDuration(duration: string): number | null {
+    const trimmed = duration.trim().toLowerCase();
+
+    // Match patterns like "1d", "2h", "30m", "1d2h30m", etc.
+    const regex = /^(\d+)\s*([dhm])$/g;
+    let match;
+    let totalSeconds = 0;
+    let hasMatch = false;
+
+    while ((match = regex.exec(trimmed)) !== null) {
+        hasMatch = true;
+        const value = parseInt(match[1], 10);
+        const unit = match[2];
+
+        switch (unit) {
+            case 'd':
+                totalSeconds += value * 24 * 60 * 60;
+                break;
+            case 'h':
+                totalSeconds += value * 60 * 60;
+                break;
+            case 'm':
+                totalSeconds += value * 60;
+                break;
+        }
+    }
+
+    return hasMatch ? totalSeconds : null;
 }
 
 export function editChangeRequestInEditorCommand(): vscode.Disposable {
