@@ -4,6 +4,10 @@ All notable changes to the "pulumi-vscode-tools" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+- Added support for Open Approvals in Pulumi ESC
+
 ## v0.4.0
 
 - Added support for Change Requests / Approvals in Pulumi ESC
