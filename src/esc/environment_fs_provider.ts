@@ -175,7 +175,6 @@ export class EnvironmentFileSystemProvider implements vscode.FileSystemProvider,
         }
     }
 
-
     private async getEnvironmentYaml(uri: vscode.Uri): Promise<string> {
         const { org, project, envName } = uriHelper.parseEnvUri(uri);
         const yaml = await this.api.getEnvironment(org, project, envName);

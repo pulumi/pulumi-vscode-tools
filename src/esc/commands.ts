@@ -194,7 +194,6 @@ async function offerCreateOpenRequest(api: EscApi, org: string, project: string,
     const changeRequestId = await api.createOpenRequest(org, project, envName, durationSeconds);
     await api.submitChangeRequest(changeRequestId, description);
 
-    // Show non-blocking notification
     const changeRequestUrl = `${config.consoleUrl()}/${org}/esc/${project}/${envName}/change-requests?requestId=${changeRequestId}`;
     vscode.window.showInformationMessage(
         'Access request created. Please wait for approval.',
