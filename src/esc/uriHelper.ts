@@ -53,7 +53,7 @@ export function isChangeRequestUri(uri: vscode.Uri): boolean {
 }
 
 export function isDecryptUri(uri: vscode.Uri): boolean {
-    return uri.path.includes("/decrypt/");
+    return uri.path.includes("/decrypt");
 }
 
 export function isRevisionUri(uri: vscode.Uri): boolean {
@@ -61,7 +61,7 @@ export function isRevisionUri(uri: vscode.Uri): boolean {
 }
 
 export function isOpenUri(uri: vscode.Uri): boolean {
-    return uri.path.includes("/open/");
+    return uri.path.includes("/open");
 }
 
 export function isPulumiUri(uri: vscode.Uri | undefined): boolean {

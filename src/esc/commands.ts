@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
+import ms from 'ms';
 import EscApi from './api';
 import { Organization, Project, Environment, Revision } from './env_tree_data_provider';
 import { formEnvUri } from './uriHelper';
 import { isPulumiEscEditor } from './editorHelper';
 import { EnvironmentsTreeDataProvider } from './env_tree_data_provider';
+import * as uriHelper from "./uriHelper";
+import * as config from "./config";
 
 const validRegex = /^[a-zA-Z][a-zA-Z0-9-_.]*$/;
 
@@ -99,9 +102,16 @@ export async function addEnvironment(api: EscApi, org: string, project: string) 
     vscode.commands.executeCommand('pulumi.esc.refresh');
 }
 
-export function decryptEnvironmentCommand(): vscode.Disposable {
+export function decryptEnvironmentCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.decrypt-env', async (env: Environment) => {
         if (!env) {
+            return;
+        }
+
+        // Check whether Open Approval is required
+        const metadata = await api.getEnvironmentMetadata(env.org, env.project, env.envName);
+        if (metadata.openRequestNeeded) {
+            await offerCreateOpenRequest(api, env.org, env.project, env.envName);
             return;
         }
 
@@ -109,11 +119,21 @@ export function decryptEnvironmentCommand(): vscode.Disposable {
     });
 }
 
-export function openEnvironmentCommand(): vscode.Disposable {
+export function openEnvironmentCommand(api: EscApi): vscode.Disposable {
     return vscode.commands.registerCommand('pulumi.esc.open-env', async () => {
         const editor = vscode.window.activeTextEditor;
 
         if (!isPulumiEscEditor(editor)) {
+            return;
+        }
+
+        // Parse URI to get environment details
+        const { org, project, envName } = uriHelper.parseEnvUri(editor!.document.uri);
+
+        // Check whether Open Approval is required
+        const metadata = await api.getEnvironmentMetadata(org, project, envName);
+        if (metadata.openRequestNeeded) {
+            await offerCreateOpenRequest(api, org, project, envName);
             return;
         }
 
@@ -127,6 +147,66 @@ export function openEnvironmentCommand(): vscode.Disposable {
             viewColumn: vscode.ViewColumn.Beside,
         });
     });
+}
+
+async function offerCreateOpenRequest(api: EscApi, org: string, project: string, envName: string) {
+    const selection = await vscode.window.showErrorMessage(
+        `Cannot open "${envName}". You must create an open access request.`,
+        'Request Open Access',
+        'Cancel'
+    );
+
+    if (selection !== 'Request Open Access') {
+        return;
+    }
+
+    const description = await vscode.window.showInputBox({
+        prompt: 'Why are you requesting open access?',
+        placeHolder: ''
+    });
+    if (description === undefined) {
+        return;
+    }
+
+    const accessDuration = await vscode.window.showInputBox({
+        prompt: 'How long do you need to access the environment?',
+        placeHolder: 'e.g., 1h, 30m, 1d, 2h30m',
+        value: '1h',
+        validateInput: (value) => {
+            if (value === "") {
+                return inputError('Duration required');
+            }
+            const seconds = ms(value) / 1000;
+            if (seconds === undefined || Number.isNaN(seconds)) {
+                return inputError('Invalid duration format. Use d (days), h (hours), or m (minutes), e.g., 1h, 30m, 1d2h');
+            }
+            if (seconds <= 1) {
+                return inputError('Duration must be greater than 1s');
+            }
+            return null;
+        }
+    });
+    if (accessDuration === undefined) {
+        return;
+    }
+
+    const durationSeconds = ms(accessDuration) / 1000;
+    if (durationSeconds === null) {
+        return;
+    }
+
+    const changeRequestId = await api.createOpenRequest(org, project, envName, durationSeconds);
+    await api.submitChangeRequest(changeRequestId, description);
+
+    const changeRequestUrl = `${config.consoleUrl()}/${org}/approvals?requestId=${changeRequestId}`;
+    const result = await vscode.window.showInformationMessage(
+        'Access request created. Please wait for approval.',
+        'Open Access Request in Browser',
+    );
+    if (result === 'Open Access Request in Browser') {
+        await vscode.env.openExternal(vscode.Uri.parse(changeRequestUrl));
+    }
+    return;
 }
 
 export function editChangeRequestInEditorCommand(): vscode.Disposable {
