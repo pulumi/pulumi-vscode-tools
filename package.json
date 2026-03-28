@@ -19,15 +19,11 @@
   "homepage": "https://github.com/pulumi/pulumi-vscode-tools/blob/main/README.md",
   "categories": [
     "Programming Languages",
-    "Extension Packs",
     "Debuggers",
     "Other"
   ],
   "extensionDependencies": [],
-  "extensionPack": [
-    "pulumi.pulumi-lsp-client",
-    "pulumi.pulumi-vscode-copilot"
-  ],
+  "extensionPack": [],
   "activationEvents": [
     "onDebugDynamicConfigurations:pulumi",
     "onDebugInitialConfigurations:pulumi",
