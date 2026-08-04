@@ -6,10 +6,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## v0.5.1
 
-- Fix changelog formatting
-
-## v0.5.0
-
 - Added support for Open Approvals in Pulumi ESC
 - Removed the deprecated Pulumi Copilot extension from the extension pack
 
