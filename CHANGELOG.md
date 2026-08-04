@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## v0.5.0
+
 - Added support for Open Approvals in Pulumi ESC
 - Removed the deprecated Pulumi Copilot extension from the extension pack
 
