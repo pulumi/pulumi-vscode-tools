@@ -13,6 +13,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Added support for Change Requests / Approvals in Pulumi ESC
 
+- Add support to multiple projects inside a workspace #34
+
 ## v0.3.0
 
 - Ability to stop debugging #11
